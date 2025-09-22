@@ -1,32 +1,21 @@
-//
-//  PixelDaysApp.swift
-//  PixelDays
-//
-//  Created by eevv on 9/21/25.
-//
-
 import SwiftUI
-import SwiftData
 
 @main
 struct PixelDaysApp: App {
-    var sharedModelContainer: ModelContainer = {
-        let schema = Schema([
-            Item.self,
-        ])
-        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
+    let persistence: PersistenceController
+    @StateObject private var entryStore: EntryStore
 
-        do {
-            return try ModelContainer(for: schema, configurations: [modelConfiguration])
-        } catch {
-            fatalError("Could not create ModelContainer: \(error)")
-        }
-    }()
+    init() {
+        let controller = PersistenceController.shared
+        persistence = controller
+        _entryStore = StateObject(wrappedValue: EntryStore(persistence: controller))
+    }
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            HomeView()
+                .environment(\.managedObjectContext, persistence.container.viewContext)
+                .environmentObject(entryStore)
         }
-        .modelContainer(sharedModelContainer)
     }
 }
