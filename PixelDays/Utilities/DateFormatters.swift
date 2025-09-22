@@ -6,7 +6,7 @@ enum DateFormatters {
         formatter.calendar = Calendar(identifier: .gregorian)
         formatter.locale = Locale(identifier: "en_US_POSIX")
         formatter.timeZone = timeZone
-        formatter.dateFormat = "yyyy.MM.dd HH:mm"
+        formatter.dateFormat = "yyyy.MM.dd"
         return formatter
     }
 

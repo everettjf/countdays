@@ -2,7 +2,7 @@ import SwiftUI
 
 struct PixelNumberView: View {
     let value: Int
-    var label: LocalizedStringKey = "Days"
+    var label: String = "Days"
     var color: Color = Color(hex: "#00E0A4")
 
     var body: some View {
@@ -12,9 +12,8 @@ struct PixelNumberView: View {
                 .tracking(3)
                 .foregroundStyle(color)
                 .shadow(color: color.opacity(0.7), radius: 0, x: 1, y: 1)
-            Text(label)
+            Text(label.uppercased())
                 .font(.system(.caption, design: .monospaced).weight(.semibold))
-                .textCase(.uppercase)
                 .foregroundStyle(color.opacity(0.9))
         }
         .padding(12)

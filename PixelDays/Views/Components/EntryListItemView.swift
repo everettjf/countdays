@@ -15,23 +15,23 @@ struct EntryListItemView: View {
     var body: some View {
         EntryCardView(snapshot: EntrySnapshot(entry: entry))
             .contextMenu {
-                Button(entry.isPinned ? String(localized: "Unpin") : String(localized: "Pin")) {
+                Button(entry.isPinned ? "Unpin" : "Pin") {
                     onAction(entry, .togglePin)
                 }
-                Button(entry.isArchived ? String(localized: "Unarchive") : String(localized: "Archive")) {
+                Button(entry.isArchived ? "Unarchive" : "Archive") {
                     onAction(entry, .toggleArchive)
                 }
-                Button(String(localized: "Duplicate")) {
+                Button("Duplicate") {
                     onAction(entry, .duplicate)
                 }
                 Divider()
-                Button(String(localized: "Edit")) {
+                Button("Edit") {
                     onAction(entry, .edit)
                 }
                 Button(role: .destructive) {
                     onAction(entry, .delete)
                 } label: {
-                    Label(String(localized: "Delete"), systemImage: "trash")
+                    Label("Delete", systemImage: "trash")
                 }
             }
             .onTapGesture {

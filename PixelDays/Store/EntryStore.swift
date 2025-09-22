@@ -12,9 +12,9 @@ final class EntryStore: ObservableObject {
 
         var title: String {
             switch self {
-            case .all: return String(localized: "All")
-            case .pinned: return String(localized: "Pinned")
-            case .archived: return String(localized: "Archived")
+            case .all: return "All"
+            case .pinned: return "Pinned"
+            case .archived: return "Archived"
             }
         }
     }
@@ -70,11 +70,12 @@ final class EntryStore: ObservableObject {
         let existingIndex = allEntries.firstIndex { $0.id == draft.id }
         let existing = existingIndex.map { allEntries[$0] }
         var entry = draft.makeEntry(existing: existing)
+        let timezone = entry.timezone
         if entry.entryType == .countUp && entry.startDate == nil {
-            entry.startDate = Date()
+            entry.startDate = DayCounter.startOfDay(Date(), in: timezone)
         }
         if entry.entryType == .countDown && entry.targetDate == nil {
-            entry.targetDate = Date().addingTimeInterval(86_400)
+            entry.targetDate = DayCounter.startOfDay(Date().addingTimeInterval(86_400), in: timezone)
         }
         if let existingIndex {
             allEntries[existingIndex] = entry
@@ -119,7 +120,14 @@ final class EntryStore: ObservableObject {
         copy.id = UUID()
         copy.isPinned = false
         copy.isArchived = false
-        copy.title += " " + String(localized: "(Copy)")
+        copy.title += " (Copy)"
+        let timezone = copy.timezone
+        if let start = copy.startDate {
+            copy.startDate = DayCounter.startOfDay(start, in: timezone)
+        }
+        if let target = copy.targetDate {
+            copy.targetDate = DayCounter.startOfDay(target, in: timezone)
+        }
         copy.stampTimestamps(asNew: true)
         allEntries.append(copy)
         persistSilently()

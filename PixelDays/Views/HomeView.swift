@@ -44,7 +44,7 @@ struct HomeView: View {
                 }
                 addButton
             }
-            .navigationTitle(String(localized: "PixelDays"))
+            .navigationTitle("PixelDays")
             .toolbarBackground(Color(hex: "#0F141D"), for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
@@ -53,14 +53,14 @@ struct HomeView: View {
                     NavigationLink {
                         SettingsView()
                     } label: {
-                        Label(String(localized: "Settings"), systemImage: "gearshape")
+                        Label("Settings", systemImage: "gearshape")
                     }
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button {
                         showImporter = true
                     } label: {
-                        Label(String(localized: "Import JSON"), systemImage: "tray.and.arrow.down")
+                        Label("Import JSON", systemImage: "tray.and.arrow.down")
                     }
                 }
             }
@@ -71,7 +71,7 @@ struct HomeView: View {
                     importSummary = summary
                     showImportSummary = true
                 case .failure(let error):
-                    let status = ImportService.RowStatus(title: String(localized: "Import Failed"), state: .skipped(error.localizedDescription))
+                    let status = ImportService.RowStatus(title: "Import Failed", state: .skipped(error.localizedDescription))
                     importSummary = ImportService.Summary(statuses: [status])
                     showImportSummary = true
                 }
@@ -100,8 +100,8 @@ struct HomeView: View {
             .onChange(of: searchText) { newValue in
                 store.set(search: newValue)
             }
-            .alert(String(localized: "Error"), isPresented: $showErrorAlert, actions: {
-                Button(String(localized: "OK")) { showErrorAlert = false }
+            .alert("Error", isPresented: $showErrorAlert, actions: {
+                Button("OK") { showErrorAlert = false }
             }, message: {
                 Text(errorMessage)
             })
@@ -110,7 +110,7 @@ struct HomeView: View {
 
     private var header: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Picker(String(localized: "Filter"), selection: $filter) {
+            Picker("Filter", selection: $filter) {
                 ForEach(EntryStore.Filter.allCases) { filter in
                     Text(filter.title).tag(filter)
                 }
@@ -121,7 +121,7 @@ struct HomeView: View {
             HStack {
                 Image(systemName: "magnifyingglass")
                     .foregroundStyle(.white.opacity(0.6))
-                TextField(String(localized: "Search"), text: $searchText)
+                TextField("Search", text: $searchText)
                     .textInputAutocapitalization(.words)
                     .disableAutocorrection(true)
                     .foregroundStyle(.white)
@@ -144,7 +144,7 @@ struct HomeView: View {
             editingEntry = nil
             isPresentingEditor = true
         } label: {
-            Label(String(localized: "Add Entry"), systemImage: "plus")
+            Label("Add Entry", systemImage: "plus")
                 .font(.system(.headline, design: .monospaced).weight(.bold))
                 .padding(16)
                 .background(
@@ -155,15 +155,15 @@ struct HomeView: View {
                 .foregroundStyle(Color(hex: "#0B0F14"))
         }
         .padding(24)
-        .accessibilityLabel(String(localized: "Add new entry"))
+        .accessibilityLabel("Add new entry")
     }
 
     private var emptyState: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text(String(localized: "No entries yet"))
+            Text("No entries yet")
                 .font(.title3.weight(.bold))
                 .foregroundStyle(.white)
-            Text(String(localized: "Tap the + button to add your first countdown or cumulative day tracker."))
+            Text("Tap the + button to add your first countdown or cumulative day tracker.")
                 .font(.body)
                 .foregroundStyle(.white.opacity(0.7))
         }

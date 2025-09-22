@@ -15,7 +15,7 @@ struct EntryCardView: View {
     }
 
     private var dateLabel: String {
-        snapshot.entryType == .countUp ? String(localized: "Start Date") : String(localized: "Target Date")
+        snapshot.entryType == .countUp ? "Start Date" : "Target Date"
     }
 
     private var days: Int { DayCounter.days(for: snapshot, now: now) }

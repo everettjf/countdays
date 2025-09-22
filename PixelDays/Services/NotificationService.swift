@@ -21,7 +21,7 @@ final class NotificationService {
         guard entry.entryType == .countDown, let targetDate = entry.targetDate else { return }
         let content = UNMutableNotificationContent()
         content.title = entry.title
-        content.body = String(localized: "Today is the day!")
+        content.body = "Today is the day!"
         content.sound = .default
 
         var triggerDate = Calendar.current.dateComponents([.year, .month, .day], from: targetDate)

@@ -30,8 +30,8 @@ final class ImportService {
             decoder.dateDecodingStrategy = .iso8601
             let payload = try decoder.decode(ImportPayload.self, from: data)
             guard payload.version == 1 else {
-                let reason = String(localized: "Unsupported import version") + " " + String(payload.version)
-                rows.append(RowStatus(title: String(localized: "Invalid Version"), state: .skipped(reason)))
+                let reason = "Unsupported import version " + String(payload.version)
+                rows.append(RowStatus(title: "Invalid Version", state: .skipped(reason)))
                 return Summary(statuses: rows)
             }
 
@@ -39,10 +39,10 @@ final class ImportService {
                 do {
                     let entry = try process(dto)
                     imported.append(entry)
-                    rows.append(RowStatus(title: dto.title ?? String(localized: "Untitled"), state: .success))
+                    rows.append(RowStatus(title: dto.title ?? "Untitled", state: .success))
                 } catch {
                     let message = (error as? ImportError)?.message ?? error.localizedDescription
-                    rows.append(RowStatus(title: dto.title ?? String(localized: "Untitled"), state: .skipped(message)))
+                    rows.append(RowStatus(title: dto.title ?? "Untitled", state: .skipped(message)))
                 }
             }
 
@@ -50,7 +50,7 @@ final class ImportService {
                 store.importEntries(imported)
             }
         } catch {
-            rows.append(RowStatus(title: String(localized: "Import Failed"), state: .skipped(error.localizedDescription)))
+            rows.append(RowStatus(title: "Import Failed", state: .skipped(error.localizedDescription)))
         }
 
         return Summary(statuses: rows)
@@ -60,11 +60,11 @@ final class ImportService {
 private extension ImportService {
     func process(_ dto: ImportEntryDTO) throws -> Entry {
         let title = (dto.title ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !title.isEmpty else { throw ImportError.validation(String(localized: "Title is required")) }
-        guard let type = dto.type.flatMap(EntryType.init(rawValue:)) else { throw ImportError.validation(String(localized: "Unsupported type")) }
+        guard !title.isEmpty else { throw ImportError.validation("Title is required") }
+        guard let type = dto.type.flatMap(EntryType.init(rawValue:)) else { throw ImportError.validation("Unsupported type") }
 
         let timezoneID = dto.timezone?.trimmingCharacters(in: .whitespacesAndNewlines) ?? TimeZone.current.identifier
-        guard let _ = TimeZone(identifier: timezoneID) else { throw ImportError.validation(String(localized: "Invalid timezone identifier")) }
+        guard let timezone = TimeZone(identifier: timezoneID) else { throw ImportError.validation("Invalid timezone identifier") }
 
         let isPinned = dto.isPinned ?? false
         let isArchived = dto.isArchived ?? false
@@ -84,12 +84,12 @@ private extension ImportService {
 
         switch type {
         case .countUp:
-            guard let start = dto.startDate else { throw ImportError.validation(String(localized: "startDate is required for countUp")) }
-            entry.startDate = start
+            guard let start = dto.startDate else { throw ImportError.validation("startDate is required for countUp") }
+            entry.startDate = DayCounter.startOfDay(start, in: timezone)
             entry.targetDate = nil
         case .countDown:
-            guard let target = dto.targetDate else { throw ImportError.validation(String(localized: "targetDate is required for countDown")) }
-            entry.targetDate = target
+            guard let target = dto.targetDate else { throw ImportError.validation("targetDate is required for countDown") }
+            entry.targetDate = DayCounter.startOfDay(target, in: timezone)
             entry.startDate = nil
         }
 

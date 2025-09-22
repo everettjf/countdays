@@ -39,10 +39,10 @@ struct EntryEditView: View {
 
                 Section(draft.entryType == .countUp ? "Start" : "Target") {
                     if draft.entryType == .countUp {
-                        DatePicker("Start Date", selection: Binding($draft.startDate, replacingNilWith: Date()), displayedComponents: [.date, .hourAndMinute])
+                        DatePicker("Start Date", selection: Binding($draft.startDate, replacingNilWith: Date()), displayedComponents: [.date])
                             .datePickerStyle(.graphical)
                     } else {
-                        DatePicker("Target Date", selection: Binding($draft.targetDate, replacingNilWith: Date()), displayedComponents: [.date, .hourAndMinute])
+                        DatePicker("Target Date", selection: Binding($draft.targetDate, replacingNilWith: Date()), displayedComponents: [.date])
                             .datePickerStyle(.graphical)
                     }
 
