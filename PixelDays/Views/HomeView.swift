@@ -48,9 +48,8 @@ struct HomeView: View {
                         .padding(.bottom, 72)
                     }
                 }
-                addButton
             }
-            .navigationTitle("PixelDays")
+            .navigationTitle("Pixel Days Count")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
@@ -58,6 +57,15 @@ struct HomeView: View {
                         showSettings = true
                     } label: {
                         Label("Settings", systemImage: "gearshape")
+                    }
+                }
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button {
+                        draft = EntryDraft(entryType: .countUp, startDate: Date(), timezone: .current)
+                        editingEntry = nil
+                        isPresentingEditor = true
+                    } label: {
+                        Label("Add Entry", systemImage: "plus")
                     }
                 }
             }
@@ -161,24 +169,6 @@ struct HomeView: View {
         .padding(.top, 0)
     }
 
-    private var addButton: some View {
-        Button {
-            draft = EntryDraft(entryType: .countUp, startDate: Date(), timezone: .current)
-            editingEntry = nil
-            isPresentingEditor = true
-        } label: {
-            Label("Add Entry", systemImage: "plus")
-                .font(.system(.headline, design: .monospaced).weight(.bold))
-                .padding(.horizontal, 20)
-                .padding(.vertical, 14)
-                .background(addButtonBackground)
-                .foregroundColor(.white)
-        }
-        .padding(.trailing, 20)
-        .padding(.bottom, 20)
-        .accessibilityLabel("Add new entry")
-    }
-
     private var emptyState: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("No entries yet")
@@ -273,34 +263,6 @@ struct HomeView: View {
         }
         entryPendingDeletion = nil
         showDeleteConfirm = false
-    }
-
-    private var addButtonBackground: some View {
-        let base = Color(hex: "#FF6B6B")
-        return RoundedRectangle(cornerRadius: 14, style: .continuous)
-            .fill(base)
-            .overlay(
-                LinearGradient(colors: [base.opacity(0.9), base.opacity(0.7)], startPoint: .topLeading, endPoint: .bottomTrailing)
-                    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .stroke(Color.white.opacity(0.6), lineWidth: 1.5)
-            )
-            .overlay(alignment: .topLeading) { pixelCorner(x: -6, y: -6, color: base) }
-            .overlay(alignment: .bottomTrailing) { pixelCorner(x: 6, y: 6, color: base) }
-            .shadow(color: base.opacity(0.35), radius: 10, x: 0, y: 6)
-    }
-
-    private func pixelCorner(x: CGFloat, y: CGFloat, color: Color) -> some View {
-        RoundedRectangle(cornerRadius: 2, style: .continuous)
-            .fill(color)
-            .frame(width: 12, height: 12)
-            .overlay(
-                RoundedRectangle(cornerRadius: 2, style: .continuous)
-                    .stroke(Color.white.opacity(0.7), lineWidth: 1)
-            )
-            .offset(x: x, y: y)
     }
 
     private func exportEntries() {

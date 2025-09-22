@@ -9,10 +9,14 @@ struct PixelNumberView: View {
         VStack(alignment: .trailing, spacing: 2) {
             Text("\(value)")
                 .font(.system(size: 44, weight: .heavy, design: .monospaced))
-                .tracking(2)
+                .lineLimit(1)
+                .minimumScaleFactor(0.5)
+                .allowsTightening(true)
                 .foregroundColor(Color(.label))
             Text(label.uppercased())
                 .font(.system(.caption2, design: .monospaced).weight(.semibold))
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
                 .foregroundColor(Color(.secondaryLabel))
         }
         .padding(.horizontal, 12)
