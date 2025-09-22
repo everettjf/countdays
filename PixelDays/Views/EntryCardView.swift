@@ -19,6 +19,7 @@ struct EntryCardView: View {
     }
 
     private var days: Int { DayCounter.days(for: snapshot, now: now) }
+    private let timer = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {

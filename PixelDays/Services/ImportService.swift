@@ -1,4 +1,4 @@
-import CoreData
+import Foundation
 
 final class ImportService {
     struct RowStatus: Identifiable {
@@ -14,45 +14,43 @@ final class ImportService {
         var skippedCount: Int { statuses.count - importedCount }
     }
 
-    private let persistence: PersistenceController
+    private unowned let store: EntryStore
 
-    init(persistence: PersistenceController) {
-        self.persistence = persistence
+    init(store: EntryStore) {
+        self.store = store
     }
 
     func importEntries(from url: URL) -> Summary {
         var rows: [RowStatus] = []
-        let context = persistence.newBackgroundContext()
-        context.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+        var imported: [Entry] = []
 
-        context.performAndWait {
-            do {
-                let data = try Data(contentsOf: url)
-                let decoder = JSONDecoder()
-                decoder.dateDecodingStrategy = .iso8601
-                let payload = try decoder.decode(ImportPayload.self, from: data)
-                guard payload.version == 1 else {
-                    let reason = String(localized: "Unsupported import version") + " " + String(payload.version)
-                    rows.append(RowStatus(title: String(localized: "Invalid Version"), state: .skipped(reason)))
-                    return
-                }
-
-                for entry in payload.entries {
-                    do {
-                        try process(entry, in: context)
-                        rows.append(RowStatus(title: entry.title ?? String(localized: "Untitled"), state: .success))
-                    } catch {
-                        let message = (error as? ImportError)?.message ?? error.localizedDescription
-                        rows.append(RowStatus(title: entry.title ?? String(localized: "Untitled"), state: .skipped(message)))
-                    }
-                }
-
-                if context.hasChanges {
-                    try context.save()
-                }
-            } catch {
-                rows.append(RowStatus(title: String(localized: "Import Failed"), state: .skipped(error.localizedDescription)))
+        do {
+            let data = try Data(contentsOf: url)
+            let decoder = JSONDecoder()
+            decoder.dateDecodingStrategy = .iso8601
+            let payload = try decoder.decode(ImportPayload.self, from: data)
+            guard payload.version == 1 else {
+                let reason = String(localized: "Unsupported import version") + " " + String(payload.version)
+                rows.append(RowStatus(title: String(localized: "Invalid Version"), state: .skipped(reason)))
+                return Summary(statuses: rows)
             }
+
+            for dto in payload.entries {
+                do {
+                    let entry = try process(dto)
+                    imported.append(entry)
+                    rows.append(RowStatus(title: dto.title ?? String(localized: "Untitled"), state: .success))
+                } catch {
+                    let message = (error as? ImportError)?.message ?? error.localizedDescription
+                    rows.append(RowStatus(title: dto.title ?? String(localized: "Untitled"), state: .skipped(message)))
+                }
+            }
+
+            if !imported.isEmpty {
+                store.importEntries(imported)
+            }
+        } catch {
+            rows.append(RowStatus(title: String(localized: "Import Failed"), state: .skipped(error.localizedDescription)))
         }
 
         return Summary(statuses: rows)
@@ -60,28 +58,30 @@ final class ImportService {
 }
 
 private extension ImportService {
-    func process(_ dto: ImportEntryDTO, in context: NSManagedObjectContext) throws {
+    func process(_ dto: ImportEntryDTO) throws -> Entry {
         let title = (dto.title ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
         guard !title.isEmpty else { throw ImportError.validation(String(localized: "Title is required")) }
         guard let type = dto.type.flatMap(EntryType.init(rawValue:)) else { throw ImportError.validation(String(localized: "Unsupported type")) }
 
         let timezoneID = dto.timezone?.trimmingCharacters(in: .whitespacesAndNewlines) ?? TimeZone.current.identifier
-        guard let timezone = TimeZone(identifier: timezoneID) else { throw ImportError.validation(String(localized: "Invalid timezone identifier")) }
+        guard let _ = TimeZone(identifier: timezoneID) else { throw ImportError.validation(String(localized: "Invalid timezone identifier")) }
 
-        let colorHex = sanitize(color: dto.color, current: entry.colorHex)
         let isPinned = dto.isPinned ?? false
         let isArchived = dto.isArchived ?? false
 
-        let entry: Entry
-        if let identifier = dto.id, let existing = fetchEntry(with: identifier, in: context) {
-            entry = existing
-        } else {
-            entry = Entry(context: context)
-            entry.id = dto.id ?? UUID()
-        }
+        let identifier = dto.id ?? UUID()
+        let existing = store.entry(with: identifier)
+        var entry = existing ?? Entry(id: identifier, title: title, entryType: type, timezoneID: timezoneID)
 
         entry.title = title
         entry.entryType = type
+        entry.timezoneID = timezoneID
+        entry.colorHex = sanitize(color: dto.color, current: existing?.colorHex ?? entry.colorHex)
+        entry.iconEmoji = dto.iconEmoji?.isEmpty == true ? nil : dto.iconEmoji
+        entry.notes = dto.notes
+        entry.isArchived = isArchived
+        entry.isPinned = isPinned && !isArchived
+
         switch type {
         case .countUp:
             guard let start = dto.startDate else { throw ImportError.validation(String(localized: "startDate is required for countUp")) }
@@ -92,29 +92,18 @@ private extension ImportService {
             entry.targetDate = target
             entry.startDate = nil
         }
-        entry.timezone = timezone
-        entry.colorHex = colorHex
-        entry.iconEmoji = dto.iconEmoji
-        entry.notes = dto.notes
-        entry.isPinned = isPinned
-        entry.isArchived = isArchived
-        entry.prepareForSave()
+
+        entry.stampTimestamps(asNew: existing == nil)
+        return entry
     }
 
-    func fetchEntry(with id: UUID, in context: NSManagedObjectContext) -> Entry? {
-        let request = Entry.fetchRequest()
-        request.fetchLimit = 1
-        request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
-        return try? context.fetch(request).first
-    }
-
-    func sanitize(color: String?, current: String?) -> String {
-        guard let value = color, !value.isEmpty else { return current ?? "#6C8BD6" }
+    func sanitize(color: String?, current: String) -> String {
+        guard let value = color, !value.isEmpty else { return current }
         var hex = value.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
         if hex.hasPrefix("#") { hex.removeFirst() }
         let valid = Set("0123456789ABCDEF")
         guard hex.count == 6, hex.allSatisfy({ valid.contains($0) }) else {
-            return current ?? "#6C8BD6"
+            return current
         }
         return "#" + hex
     }

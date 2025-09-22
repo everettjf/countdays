@@ -44,7 +44,7 @@ struct EntryDraft: Identifiable {
         startDate = entry.startDate
         targetDate = entry.targetDate
         timezone = entry.timezone
-        colorHex = entry.colorHex ?? "#6C8BD6"
+        colorHex = entry.colorHex
         iconEmoji = entry.iconEmoji
         notes = entry.notes
         isPinned = entry.isPinned
@@ -53,5 +53,26 @@ struct EntryDraft: Identifiable {
 
     var dateForDisplay: Date? {
         entryType == .countUp ? startDate : targetDate
+    }
+}
+
+
+extension EntryDraft {
+    func makeEntry(existing: Entry?) -> Entry {
+        let isNew = existing == nil
+        var entry = existing ?? Entry(title: title, entryType: entryType)
+        entry.id = id
+        entry.title = title
+        entry.entryType = entryType
+        entry.startDate = entryType == .countUp ? startDate : nil
+        entry.targetDate = entryType == .countDown ? targetDate : nil
+        entry.colorHex = colorHex.isEmpty ? "#6C8BD6" : colorHex
+        entry.iconEmoji = iconEmoji?.isEmpty == true ? nil : iconEmoji
+        entry.notes = notes?.isEmpty == true ? nil : notes
+        entry.isPinned = isPinned && !isArchived
+        entry.isArchived = isArchived
+        entry.timezoneID = timezone.identifier
+        entry.stampTimestamps(asNew: isNew)
+        return entry
     }
 }

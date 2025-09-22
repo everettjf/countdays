@@ -44,7 +44,7 @@ struct EntrySnapshot: Identifiable {
         startDate = entry.startDate
         targetDate = entry.targetDate
         timezone = entry.timezone
-        colorHex = entry.colorHex ?? "#6C8BD6"
+        colorHex = entry.colorHex
         iconEmoji = entry.iconEmoji
         notes = entry.notes
         isPinned = entry.isPinned

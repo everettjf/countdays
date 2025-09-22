@@ -9,29 +9,29 @@ enum EntryAction {
 }
 
 struct EntryListItemView: View {
-    @ObservedObject var entry: Entry
+    let entry: Entry
     var onAction: (Entry, EntryAction) -> Void
 
     var body: some View {
         EntryCardView(snapshot: EntrySnapshot(entry: entry))
             .contextMenu {
-                Button(entry.isPinned ? "Unpin" : "Pin") {
+                Button(entry.isPinned ? String(localized: "Unpin") : String(localized: "Pin")) {
                     onAction(entry, .togglePin)
                 }
-                Button(entry.isArchived ? "Unarchive" : "Archive") {
+                Button(entry.isArchived ? String(localized: "Unarchive") : String(localized: "Archive")) {
                     onAction(entry, .toggleArchive)
                 }
-                Button("Duplicate") {
+                Button(String(localized: "Duplicate")) {
                     onAction(entry, .duplicate)
                 }
                 Divider()
-                Button("Edit") {
+                Button(String(localized: "Edit")) {
                     onAction(entry, .edit)
                 }
                 Button(role: .destructive) {
                     onAction(entry, .delete)
                 } label: {
-                    Label("Delete", systemImage: "trash")
+                    Label(String(localized: "Delete"), systemImage: "trash")
                 }
             }
             .onTapGesture {
