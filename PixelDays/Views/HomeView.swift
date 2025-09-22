@@ -14,6 +14,7 @@ struct HomeView: View {
     @State private var showImportSummary = false
     @State private var showErrorAlert = false
     @State private var errorMessage: String = ""
+    @State private var showSettings = false
 
     private var entries: [Entry] { store.entries }
 
@@ -24,7 +25,7 @@ struct HomeView: View {
             ZStack(alignment: .bottomTrailing) {
                 Color(hex: "#0B0F14").ignoresSafeArea()
                 ScrollView {
-                    LazyVStack(alignment: .leading, spacing: 24) {
+                    LazyVStack(alignment: .leading, spacing: 18) {
                         header
                         LazyVGrid(columns: columns, alignment: .leading, spacing: 20) {
                             if entries.isEmpty {
@@ -50,19 +51,15 @@ struct HomeView: View {
             .toolbarColorScheme(.dark, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    NavigationLink {
-                        SettingsView()
+                    Button {
+                        showSettings = true
                     } label: {
                         Label("Settings", systemImage: "gearshape")
                     }
                 }
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button {
-                        showImporter = true
-                    } label: {
-                        Label("Import JSON", systemImage: "tray.and.arrow.down")
-                    }
-                }
+            }
+            .sheet(isPresented: $showSettings) {
+                SettingsView(onImport: { showImporter = true })
             }
             .fileImporter(isPresented: $showImporter, allowedContentTypes: [.json]) { result in
                 switch result {
@@ -109,7 +106,7 @@ struct HomeView: View {
     }
 
     private var header: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: 12) {
             Picker("Filter", selection: $filter) {
                 ForEach(EntryStore.Filter.allCases) { filter in
                     Text(filter.title).tag(filter)
@@ -118,7 +115,7 @@ struct HomeView: View {
             .pickerStyle(.segmented)
             .padding(.horizontal, 16)
 
-            HStack {
+            HStack(spacing: 8) {
                 Image(systemName: "magnifyingglass")
                     .foregroundStyle(.white.opacity(0.6))
                 TextField("Search", text: $searchText)
@@ -135,7 +132,7 @@ struct HomeView: View {
             )
             .padding(.horizontal, 16)
         }
-        .padding(.top, 24)
+        .padding(.top, 12)
     }
 
     private var addButton: some View {
@@ -154,7 +151,8 @@ struct HomeView: View {
                 )
                 .foregroundStyle(Color(hex: "#0B0F14"))
         }
-        .padding(24)
+        .padding(.trailing, 20)
+        .padding(.bottom, 20)
         .accessibilityLabel("Add new entry")
     }
 
@@ -167,7 +165,8 @@ struct HomeView: View {
                 .font(.body)
                 .foregroundStyle(.white.opacity(0.7))
         }
-        .padding(24)
+        .padding(.trailing, 20)
+        .padding(.bottom, 20)
         .background(
             RoundedRectangle(cornerRadius: 16)
                 .stroke(Color.white.opacity(0.2), style: StrokeStyle(lineWidth: 2, dash: [6]))

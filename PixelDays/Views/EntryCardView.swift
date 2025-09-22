@@ -22,30 +22,24 @@ struct EntryCardView: View {
     private let timer = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            HStack(alignment: .top) {
-                VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(alignment: .top, spacing: 12) {
+                VStack(alignment: .leading, spacing: 10) {
                     PixelTag(text: snapshot.entryType.label, tint: supportingColor)
                     Text(snapshot.title)
-                        .font(.system(.title3, design: .rounded).weight(.heavy))
+                        .font(.system(size: 18, weight: .semibold, design: .rounded))
                         .foregroundStyle(.white)
                         .lineLimit(2)
-                        .multilineTextAlignment(.leading)
-                    HStack(alignment: .firstTextBaseline, spacing: 6) {
-                        Text("\(dateLabel):")
-                            .font(.system(.body, design: .monospaced))
-                            .foregroundStyle(.white.opacity(0.7))
-                        Text(dateLine)
-                            .font(.system(.body, design: .monospaced))
-                            .foregroundStyle(.white)
-                    }
+                    Text("\(dateLabel): \(dateLine)")
+                        .font(.system(.subheadline, design: .monospaced))
+                        .foregroundStyle(.white.opacity(0.8))
                 }
-                Spacer(minLength: 16)
-                VStack(alignment: .trailing, spacing: 8) {
+                Spacer(minLength: 8)
+                VStack(alignment: .trailing, spacing: 6) {
                     if let emoji = snapshot.iconEmoji, !emoji.isEmpty {
                         Text(emoji)
-                            .font(.system(size: 40))
-                            .shadow(color: accent.opacity(0.6), radius: 0, x: 1, y: 1)
+                            .font(.system(size: 32))
+                            .shadow(color: accent.opacity(0.5), radius: 0, x: 1, y: 1)
                     }
                     PixelNumberView(value: days, label: "Days", color: accent)
                 }
@@ -57,7 +51,7 @@ struct EntryCardView: View {
                     .lineLimit(2)
             }
         }
-        .padding(18)
+        .padding(14)
         .background(pixelBackground)
         .overlay(pixelBorder)
         .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
