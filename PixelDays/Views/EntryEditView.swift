@@ -9,6 +9,7 @@ struct EntryEditView: View {
 
     @State private var showingTimeZonePicker = false
     @FocusState private var focusTitle: Bool
+    @State private var showDeleteConfirmation = false
 
     private let colorPalette: [String] = [
         "#6C8BD6", "#00E5FF", "#00E0A4", "#FF2D55", "#FFD966",
@@ -59,8 +60,12 @@ struct EntryEditView: View {
                 }
 
                 Section("Appearance") {
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 12) {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Color")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundColor(.secondary)
+
+                        LazyVGrid(columns: Array(repeating: GridItem(.fixed(36), spacing: 12), count: 5), spacing: 12) {
                             ForEach(colorPalette, id: \.self) { hex in
                                 Circle()
                                     .fill(Color(hex: hex))
@@ -72,13 +77,14 @@ struct EntryEditView: View {
                                     .onTapGesture { draft.colorHex = hex }
                             }
                         }
-                        .padding(.vertical, 4)
+
+                        Text("Notes")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundColor(.secondary)
+                        TextEditor(text: Binding($draft.notes, replacingNilWith: ""))
+                            .frame(minHeight: 80)
                     }
-                    TextField("Emoji", text: Binding($draft.iconEmoji, replacingNilWith: ""))
-                        .font(.system(size: 32))
-                        .multilineTextAlignment(.center)
-                    TextEditor(text: Binding($draft.notes, replacingNilWith: ""))
-                        .frame(minHeight: 80)
+                    .padding(.vertical, 4)
                 }
 
                 Section("Preview") {
@@ -86,19 +92,17 @@ struct EntryEditView: View {
                         .padding(.vertical, 8)
                 }
 
-                if !isNew, let onDelete {
+                if !isNew, onDelete != nil {
                     Section {
                         Button(role: .destructive) {
-                            onDelete()
-                            dismiss()
+                            showDeleteConfirmation = true
                         } label: {
                             Label("Delete Entry", systemImage: "trash")
                         }
                     }
                 }
             }
-            .scrollContentBackground(.hidden)
-            .background(Color(hex: "#05080E").ignoresSafeArea())
+            .formStyle(.grouped)
             .navigationTitle(isNew ? "New Entry" : "Edit Entry")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -118,7 +122,17 @@ struct EntryEditView: View {
         .onAppear {
             focusTitle = draft.title.isEmpty
         }
-        .onChange(of: draft.entryType) { newValue in
+
+        .alert("Delete Entry?", isPresented: $showDeleteConfirmation) {
+            Button("Delete", role: .destructive) {
+                onDelete?()
+                dismiss()
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This action cannot be undone.")
+        }
+        .onChange(of: draft.entryType) { _, newValue in
             switch newValue {
             case .countUp:
                 if draft.startDate == nil { draft.startDate = Date() }

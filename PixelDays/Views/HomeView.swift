@@ -15,17 +15,22 @@ struct HomeView: View {
     @State private var showErrorAlert = false
     @State private var errorMessage: String = ""
     @State private var showSettings = false
+    @State private var showShareSheet = false
+    @State private var exportedURL: URL?
+    @State private var showDeleteConfirm = false
+    @State private var entryPendingDeletion: Entry?
+    @State private var showTextImport = false
+    @State private var pastedJSON: String = ""
 
     private var entries: [Entry] { store.entries }
-
     private let columns: [GridItem] = [GridItem(.adaptive(minimum: 300), spacing: 20)]
 
     var body: some View {
         NavigationStack {
             ZStack(alignment: .bottomTrailing) {
-                Color(hex: "#0B0F14").ignoresSafeArea()
+                Color(UIColor.systemGroupedBackground).ignoresSafeArea()
                 ScrollView {
-                    LazyVStack(alignment: .leading, spacing: 18) {
+                    LazyVStack(alignment: .leading, spacing: 10) {
                         header
                         LazyVGrid(columns: columns, alignment: .leading, spacing: 20) {
                             if entries.isEmpty {
@@ -40,15 +45,13 @@ struct HomeView: View {
                             }
                         }
                         .padding(.horizontal, 16)
-                        .padding(.bottom, 96)
+                        .padding(.bottom, 72)
                     }
                 }
                 addButton
             }
             .navigationTitle("PixelDays")
-            .toolbarBackground(Color(hex: "#0F141D"), for: .navigationBar)
-            .toolbarBackground(.visible, for: .navigationBar)
-            .toolbarColorScheme(.dark, for: .navigationBar)
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button {
@@ -58,8 +61,10 @@ struct HomeView: View {
                     }
                 }
             }
-            .sheet(isPresented: $showSettings) {
-                SettingsView(onImport: { showImporter = true })
+            .fullScreenCover(isPresented: $showSettings) {
+                SettingsView(onImport: { showImporter = true },
+                             onImportText: { showTextImporter() },
+                             onExport: exportEntries)
             }
             .fileImporter(isPresented: $showImporter, allowedContentTypes: [.json]) { result in
                 switch result {
@@ -78,6 +83,27 @@ struct HomeView: View {
                     ImportSummaryView(summary: summary)
                 }
             }
+            .sheet(isPresented: $showShareSheet, onDismiss: { exportedURL = nil }) {
+                if let url = exportedURL {
+                    ShareSheet(activityItems: [url])
+                }
+            }
+            .sheet(isPresented: $showTextImport) {
+                TextImportSheet(initialText: pastedJSON) { text in
+                    handlePastedJSON(text)
+                } onCancel: {
+                    showTextImport = false
+                    pastedJSON = ""
+                }
+            }
+            .confirmationDialog("Delete Entry?", isPresented: $showDeleteConfirm, presenting: entryPendingDeletion) { entry in
+                Button("Delete", role: .destructive) {
+                    delete(entry: entry)
+                }
+                Button("Cancel", role: .cancel) {}
+            } message: { _ in
+                Text("This action cannot be undone.")
+            }
             .sheet(isPresented: $isPresentingEditor) {
                 EntryEditView(draft: draft, isNew: editingEntry == nil) { newDraft in
                     save(draft: newDraft)
@@ -91,10 +117,10 @@ struct HomeView: View {
             .onAppear {
                 store.set(filter: filter)
             }
-            .onChange(of: filter) { newValue in
+            .onChange(of: filter) { _, newValue in
                 store.set(filter: newValue)
             }
-            .onChange(of: searchText) { newValue in
+            .onChange(of: searchText) { _, newValue in
                 store.set(search: newValue)
             }
             .alert("Error", isPresented: $showErrorAlert, actions: {
@@ -106,7 +132,7 @@ struct HomeView: View {
     }
 
     private var header: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 10) {
             Picker("Filter", selection: $filter) {
                 ForEach(EntryStore.Filter.allCases) { filter in
                     Text(filter.title).tag(filter)
@@ -117,22 +143,22 @@ struct HomeView: View {
 
             HStack(spacing: 8) {
                 Image(systemName: "magnifyingglass")
-                    .foregroundStyle(.white.opacity(0.6))
+                    .foregroundStyle(Color(.secondaryLabel))
                 TextField("Search", text: $searchText)
                     .textInputAutocapitalization(.words)
                     .disableAutocorrection(true)
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Color(.label))
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 10)
             .background(
                 RoundedRectangle(cornerRadius: 12)
-                    .strokeBorder(Color.white.opacity(0.15), lineWidth: 2)
-                    .background(RoundedRectangle(cornerRadius: 12).fill(Color(hex: "#121A23")))
+                    .strokeBorder(Color(.separator), lineWidth: 1)
+                    .background(RoundedRectangle(cornerRadius: 12).fill(Color(UIColor.secondarySystemBackground)))
             )
             .padding(.horizontal, 16)
         }
-        .padding(.top, 12)
+        .padding(.top, 0)
     }
 
     private var addButton: some View {
@@ -143,13 +169,10 @@ struct HomeView: View {
         } label: {
             Label("Add Entry", systemImage: "plus")
                 .font(.system(.headline, design: .monospaced).weight(.bold))
-                .padding(16)
-                .background(
-                    RoundedRectangle(cornerRadius: 14)
-                        .fill(Color(hex: "#00E5FF"))
-                        .shadow(color: Color(hex: "#00E5FF").opacity(0.6), radius: 12, x: 0, y: 8)
-                )
-                .foregroundStyle(Color(hex: "#0B0F14"))
+                .padding(.horizontal, 20)
+                .padding(.vertical, 14)
+                .background(addButtonBackground)
+                .foregroundColor(.white)
         }
         .padding(.trailing, 20)
         .padding(.bottom, 20)
@@ -160,18 +183,19 @@ struct HomeView: View {
         VStack(alignment: .leading, spacing: 12) {
             Text("No entries yet")
                 .font(.title3.weight(.bold))
-                .foregroundStyle(.white)
+                .foregroundStyle(Color(.label))
             Text("Tap the + button to add your first countdown or cumulative day tracker.")
                 .font(.body)
-                .foregroundStyle(.white.opacity(0.7))
+                .foregroundStyle(Color(.secondaryLabel))
         }
-        .padding(.trailing, 20)
-        .padding(.bottom, 20)
+        .padding(20)
+        .frame(maxWidth: .infinity, alignment: .leading)
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .stroke(Color.white.opacity(0.2), style: StrokeStyle(lineWidth: 2, dash: [6]))
-                .background(RoundedRectangle(cornerRadius: 16).fill(Color(hex: "#101720")))
+                .stroke(Color(.separator), style: StrokeStyle(lineWidth: 1, dash: [6]))
+                .background(RoundedRectangle(cornerRadius: 16).fill(Color(UIColor.systemBackground)))
         )
+        .padding(.horizontal, 16)
         .padding(.top, 40)
     }
 
@@ -188,7 +212,7 @@ struct HomeView: View {
         case .toggleArchive:
             store.toggleArchive(entry)
         case .delete:
-            delete(entry: entry)
+            requestDelete(entry)
         }
     }
 
@@ -201,9 +225,95 @@ struct HomeView: View {
         }
     }
 
+    private func showTextImporter() {
+        pastedJSON = ""
+        showTextImport = true
+    }
+
+    private func handlePastedJSON(_ text: String) {
+        do {
+            let cleaned = text.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !cleaned.isEmpty else { throw TextImportError.empty }
+            guard let data = cleaned.data(using: .utf8) else { throw TextImportError.invalidEncoding }
+            let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".json")
+            try data.write(to: tempURL, options: .atomic)
+            let summary = ImportService(store: store).importEntries(from: tempURL)
+            importSummary = summary
+            showImportSummary = true
+        } catch TextImportError.empty {
+            errorMessage = "Paste some JSON before importing."
+            showErrorAlert = true
+        } catch TextImportError.invalidEncoding {
+            errorMessage = "The pasted text is not valid UTF-8."
+            showErrorAlert = true
+        } catch {
+            errorMessage = error.localizedDescription
+            showErrorAlert = true
+        }
+        showTextImport = false
+        pastedJSON = ""
+    }
+
+    private enum TextImportError: Error {
+        case empty
+        case invalidEncoding
+    }
+
+    private func requestDelete(_ entry: Entry) {
+        entryPendingDeletion = entry
+        showDeleteConfirm = true
+    }
+
     private func delete(entry: Entry) {
         do {
             try store.delete(entry)
+        } catch {
+            errorMessage = error.localizedDescription
+            showErrorAlert = true
+        }
+        entryPendingDeletion = nil
+        showDeleteConfirm = false
+    }
+
+    private var addButtonBackground: some View {
+        let base = Color(hex: "#FF6B6B")
+        return RoundedRectangle(cornerRadius: 14, style: .continuous)
+            .fill(base)
+            .overlay(
+                LinearGradient(colors: [base.opacity(0.9), base.opacity(0.7)], startPoint: .topLeading, endPoint: .bottomTrailing)
+                    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .stroke(Color.white.opacity(0.6), lineWidth: 1.5)
+            )
+            .overlay(alignment: .topLeading) { pixelCorner(x: -6, y: -6, color: base) }
+            .overlay(alignment: .bottomTrailing) { pixelCorner(x: 6, y: 6, color: base) }
+            .shadow(color: base.opacity(0.35), radius: 10, x: 0, y: 6)
+    }
+
+    private func pixelCorner(x: CGFloat, y: CGFloat, color: Color) -> some View {
+        RoundedRectangle(cornerRadius: 2, style: .continuous)
+            .fill(color)
+            .frame(width: 12, height: 12)
+            .overlay(
+                RoundedRectangle(cornerRadius: 2, style: .continuous)
+                    .stroke(Color.white.opacity(0.7), lineWidth: 1)
+            )
+            .offset(x: x, y: y)
+    }
+
+    private func exportEntries() {
+        do {
+            let items = store.allItems()
+            guard !items.isEmpty else {
+                errorMessage = "Nothing to export yet. Add an entry first."
+                showErrorAlert = true
+                return
+            }
+            let url = try ExportService().export(entries: items)
+            exportedURL = url
+            showShareSheet = true
         } catch {
             errorMessage = error.localizedDescription
             showErrorAlert = true

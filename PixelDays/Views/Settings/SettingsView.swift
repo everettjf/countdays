@@ -1,32 +1,42 @@
 import SwiftUI
 
 struct SettingsView: View {
-    @State private var notificationsEnabled = false
+    @Environment(\.dismiss) private var dismiss
     let onImport: () -> Void
+    let onImportText: () -> Void
+    let onExport: () -> Void
 
     var body: some View {
         NavigationStack {
             List {
-                Section("Notifications") {
-                    Toggle(isOn: $notificationsEnabled) {
-                        Text("Alert me when a countdown reaches zero")
-                    }
-                    .onChange(of: notificationsEnabled) { value in
-                        if value {
-                            NotificationService.shared.requestAuthorization()
-                        }
-                    }
-                }
-
                 Section("Data") {
-                    Button { onImport() } label: {
-                        Label("Import JSON", systemImage: "tray.and.arrow.down")
+                    VStack(alignment: .leading, spacing: 6) {
+                        Button { dismissAnd(onImport) } label: {
+                            Label("Import JSON", systemImage: "tray.and.arrow.down")
+                        }
+                        Button { dismissAnd(onImportText) } label: {
+                            Label("Paste JSON", systemImage: "doc.on.doc")
+                        }
+                        Text("Import from a file or paste JSON directly. You'll review the summary before anything is saved.")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
                     }
-                    NavigationLink(destination: ImportHelpView()) {
-                        Label("How to import JSON", systemImage: "doc.badge.plus")
+
+                    VStack(alignment: .leading, spacing: 6) {
+                        Button { dismissAnd(onExport) } label: {
+                            Label("Export JSON", systemImage: "square.and.arrow.up")
+                        }
+                        Text("Create a portable snapshot using the same schema—great for backups or sharing.")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
                     }
-                    Label("Export (coming soon)", systemImage: "square.and.arrow.up")
-                        .foregroundColor(.secondary)
+
+                    NavigationLink {
+                        ImportExportGuideView(onImport: { dismissAnd(onImport) },
+                                               onExport: { dismissAnd(onExport) })
+                    } label: {
+                        Label("Import & Export Guide", systemImage: "questionmark.circle")
+                    }
                 }
 
                 Section("About") {
@@ -40,22 +50,16 @@ struct SettingsView: View {
                 }
             }
             .navigationTitle("Settings")
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Close") { dismiss() }
+                }
+            }
         }
     }
-}
 
-private struct ImportHelpView: View {
-    var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 12) {
-                Text("JSON Import")
-                    .font(.title2.weight(.bold))
-                Text("Prepare a JSON file that matches the v1 schema and use the Import button in Settings. Each row will be validated and reported in the import summary.")
-                Text("Tip: You can start from the bundled sample file `sample_import.json` inside the app bundle.")
-                    .foregroundStyle(.secondary)
-            }
-            .padding()
-        }
-        .navigationTitle("Import Help")
+    private func dismissAnd(_ action: @escaping () -> Void) {
+        dismiss()
+        DispatchQueue.main.async { action() }
     }
 }

@@ -30,19 +30,20 @@ final class ImportService {
             decoder.dateDecodingStrategy = .iso8601
             let payload = try decoder.decode(ImportPayload.self, from: data)
             guard payload.version == 1 else {
-                let reason = "Unsupported import version " + String(payload.version)
-                rows.append(RowStatus(title: "Invalid Version", state: .skipped(reason)))
+                rows.append(RowStatus(title: "Invalid Version", state: .skipped("Unsupported import version \(payload.version)")))
                 return Summary(statuses: rows)
             }
 
             for dto in payload.entries {
+                let displayTitle = (dto.title ?? "Untitled").trimmingCharacters(in: .whitespacesAndNewlines)
                 do {
                     let entry = try process(dto)
                     imported.append(entry)
-                    rows.append(RowStatus(title: dto.title ?? "Untitled", state: .success))
+                    rows.append(RowStatus(title: displayTitle.isEmpty ? "Untitled" : displayTitle, state: .success))
+                } catch let error as ImportError {
+                    rows.append(RowStatus(title: displayTitle.isEmpty ? "Untitled" : displayTitle, state: .skipped(error.message)))
                 } catch {
-                    let message = (error as? ImportError)?.message ?? error.localizedDescription
-                    rows.append(RowStatus(title: dto.title ?? "Untitled", state: .skipped(message)))
+                    rows.append(RowStatus(title: displayTitle.isEmpty ? "Untitled" : displayTitle, state: .skipped(error.localizedDescription)))
                 }
             }
 
@@ -66,21 +67,17 @@ private extension ImportService {
         let timezoneID = dto.timezone?.trimmingCharacters(in: .whitespacesAndNewlines) ?? TimeZone.current.identifier
         guard let timezone = TimeZone(identifier: timezoneID) else { throw ImportError.validation("Invalid timezone identifier") }
 
-        let isPinned = dto.isPinned ?? false
-        let isArchived = dto.isArchived ?? false
-
         let identifier = dto.id ?? UUID()
-        let existing = store.entry(with: identifier)
-        var entry = existing ?? Entry(id: identifier, title: title, entryType: type, timezoneID: timezoneID)
+        if store.entry(with: identifier) != nil {
+            throw ImportError.duplicate("Entry already exists – skipped")
+        }
 
-        entry.title = title
-        entry.entryType = type
-        entry.timezoneID = timezoneID
-        entry.colorHex = sanitize(color: dto.color, current: existing?.colorHex ?? entry.colorHex)
+        var entry = Entry(id: identifier, title: title, entryType: type, timezoneID: timezoneID)
+        entry.colorHex = sanitize(color: dto.color, current: entry.colorHex)
         entry.iconEmoji = dto.iconEmoji?.isEmpty == true ? nil : dto.iconEmoji
         entry.notes = dto.notes
-        entry.isArchived = isArchived
-        entry.isPinned = isPinned && !isArchived
+        entry.isArchived = dto.isArchived ?? false
+        entry.isPinned = (dto.isPinned ?? false) && !entry.isArchived
 
         switch type {
         case .countUp:
@@ -93,7 +90,7 @@ private extension ImportService {
             entry.startDate = nil
         }
 
-        entry.stampTimestamps(asNew: existing == nil)
+        entry.stampTimestamps(asNew: true)
         return entry
     }
 
@@ -111,10 +108,13 @@ private extension ImportService {
 
 private enum ImportError: Error {
     case validation(String)
+    case duplicate(String)
 
     var message: String {
         switch self {
         case .validation(let reason):
+            return reason
+        case .duplicate(let reason):
             return reason
         }
     }

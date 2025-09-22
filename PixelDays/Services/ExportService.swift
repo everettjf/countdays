@@ -1,0 +1,70 @@
+import Foundation
+
+struct ExportService {
+    private let encoder: JSONEncoder = {
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        return encoder
+    }()
+
+    func export(entries: [Entry]) throws -> URL {
+        let payload = ExportPayload(entries: entries.map { ExportEntry(entry: $0) })
+        let data = try encoder.encode(payload)
+        let filename = "PixelDays-export-\(ExportService.timestamp()).json"
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent(filename)
+        try data.write(to: url, options: Data.WritingOptions.atomic)
+        return url
+    }
+
+    private static func timestamp() -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyyMMdd-HHmmss"
+        formatter.timeZone = TimeZone.current
+        return formatter.string(from: Date())
+    }
+}
+
+private struct ExportPayload: Codable {
+    let version: Int
+    let entries: [ExportEntry]
+
+    init(entries: [ExportEntry]) {
+        self.version = 1
+        self.entries = entries
+    }
+}
+
+private struct ExportEntry: Codable {
+    let id: UUID
+    let title: String
+    let type: String
+    let startDate: Date?
+    let targetDate: Date?
+    let timezone: String
+    let color: String
+    let iconEmoji: String?
+    let notes: String?
+    let isPinned: Bool
+    let isArchived: Bool
+
+    init(entry: Entry) {
+        id = entry.id
+        title = entry.title
+        type = entry.entryType.rawValue
+        startDate = entry.startDate
+        targetDate = entry.targetDate
+        timezone = entry.timezoneID
+        color = entry.colorHex
+        iconEmoji = entry.iconEmoji
+        notes = entry.notes
+        isPinned = entry.isPinned
+        isArchived = entry.isArchived
+    }
+}
+
+private extension ExportEntry {
+    init(_ entry: Entry) {
+        self.init(entry: entry)
+    }
+}

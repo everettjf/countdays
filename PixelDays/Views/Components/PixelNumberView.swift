@@ -10,27 +10,46 @@ struct PixelNumberView: View {
             Text("\(value)")
                 .font(.system(size: 44, weight: .heavy, design: .monospaced))
                 .tracking(2)
-                .foregroundStyle(color)
-                .shadow(color: color.opacity(0.6), radius: 0, x: 1, y: 1)
+                .foregroundColor(Color(.label))
             Text(label.uppercased())
                 .font(.system(.caption2, design: .monospaced).weight(.semibold))
-                .foregroundStyle(color.opacity(0.85))
+                .foregroundColor(Color(.secondaryLabel))
         }
-        .padding(10)
-        .background(
-            RoundedRectangle(cornerRadius: 6)
-                .fill(color.opacity(0.06))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 6)
-                        .stroke(color.opacity(0.6), lineWidth: 2)
-                )
-        )
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(background)
+    }
+
+    private var background: some View {
+        RoundedRectangle(cornerRadius: 10, style: .continuous)
+            .fill(Color.white.opacity(0.95))
+            .overlay(
+                LinearGradient(colors: [color.opacity(0.18), color.opacity(0.05)], startPoint: .topLeading, endPoint: .bottomTrailing)
+                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .stroke(color.opacity(0.45), lineWidth: 1.5)
+            )
+            .overlay(alignment: .topLeading) { pixelCorner(x: -4, y: -4) }
+            .overlay(alignment: .bottomTrailing) { pixelCorner(x: 4, y: 4) }
+            .shadow(color: color.opacity(0.18), radius: 8, x: 0, y: 4)
+    }
+
+    private func pixelCorner(x: CGFloat, y: CGFloat) -> some View {
+        RoundedRectangle(cornerRadius: 2, style: .continuous)
+            .fill(color)
+            .frame(width: 10, height: 10)
+            .overlay(
+                RoundedRectangle(cornerRadius: 2, style: .continuous)
+                    .stroke(Color.white.opacity(0.75), lineWidth: 0.8)
+            )
+            .offset(x: x, y: y)
     }
 }
 
-#Preview {
+#Preview(traits: .sizeThatFitsLayout) {
     PixelNumberView(value: 421)
         .padding()
-        .background(Color(hex: "#0B0F14"))
-        .previewLayout(.sizeThatFits)
-}
+        .background(Color(UIColor.systemGroupedBackground))
+        }

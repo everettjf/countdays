@@ -1,5 +1,6 @@
 import Foundation
 
+@MainActor
 struct TimeZoneEntry: Identifiable, Hashable {
     let id: String
     let name: String
@@ -31,14 +32,14 @@ enum TimeZoneCatalog {
         "Australia/Sydney"
     ]
 
-    static let featured: [TimeZoneEntry] = featuredIdentifiers.compactMap(TimeZoneEntry.init)
+    @MainActor static let featured: [TimeZoneEntry] = featuredIdentifiers.compactMap(TimeZoneEntry.init)
 
-    static var all: [TimeZoneEntry] {
+    @MainActor static var all: [TimeZoneEntry] {
         TimeZone.knownTimeZoneIdentifiers.compactMap(TimeZoneEntry.init)
             .sorted { $0.name < $1.name }
     }
 
-    static func search(_ text: String) -> [TimeZoneEntry] {
+    @MainActor static func search(_ text: String) -> [TimeZoneEntry] {
         guard !text.isEmpty else { return all }
         let lower = text.lowercased()
         return all.filter { entry in

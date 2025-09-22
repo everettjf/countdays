@@ -144,6 +144,10 @@ final class EntryStore: ObservableObject {
         persistSilently()
     }
 
+    func allItems() -> [Entry] {
+        allEntries.sorted(by: sortPredicate)
+    }
+
     func refresh() {
         applyFilters()
     }
