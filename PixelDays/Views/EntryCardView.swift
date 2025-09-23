@@ -60,7 +60,7 @@ struct EntryCardView: View {
         .background(cardBackground)
         .overlay(pixelFrame)
         .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-        .shadow(color: accent.opacity(0.18), radius: 12, x: 0, y: 6)
+        .shadow(color: cardShadowColor, radius: 12, x: 0, y: 6)
         .contentShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
         .onReceive(timer) { now = $0 }
     }
@@ -68,78 +68,43 @@ struct EntryCardView: View {
     private var cardBackground: some View {
         let shape = RoundedRectangle(cornerRadius: 18, style: .continuous)
         return shape
-            .fill(
-                LinearGradient(
-                    colors: gradientColors,
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-            )
-            .overlay(
-                shape
-                    .fill(highlightGradient)
-            )
-            .overlay(
-                shape
-                    .fill(glowOverlay)
-            )
+            .fill(cardBaseGradient)
+            .overlay(shape.fill(cardNoiseOverlay))
+            .overlay(shape.stroke(cardInnerStroke, lineWidth: 1))
     }
 
-    private var gradientColors: [Color] {
-        [
-            accentAdjusted(brightness: lightnessBoost + 0.18, saturation: -0.16),
-            accentAdjusted(brightness: lightnessBoost + 0.04),
-            accentAdjusted(brightness: lightnessBoost - 0.14, saturation: 0.12)
-        ]
-    }
-
-    private var highlightGradient: RadialGradient {
-        RadialGradient(
-            colors: [
-                accentAdjusted(brightness: lightnessBoost + 0.28, saturation: -0.28)
-                    .opacity(colorScheme == .dark ? 0.36 : 0.46),
-                Color.clear
-            ],
-            center: .topLeading,
-            startRadius: 0,
-            endRadius: 220
-        )
-    }
-
-    private var glowOverlay: LinearGradient {
+    private var cardBaseGradient: LinearGradient {
         LinearGradient(
-            colors: [
-                Color.white.opacity(colorScheme == .dark ? 0.05 : 0.22),
-                Color.white.opacity(0.0),
-                accentAdjusted(brightness: lightnessBoost - 0.22, saturation: 0.18)
-                    .opacity(colorScheme == .dark ? 0.35 : 0.18)
-            ],
+            colors: [palette.top, palette.middle, palette.bottom],
             startPoint: .topLeading,
             endPoint: .bottomTrailing
         )
     }
 
-    private var lightnessBoost: CGFloat {
-        colorScheme == .dark ? -0.06 : 0.08
+    private var cardNoiseOverlay: LinearGradient {
+        LinearGradient(
+            colors: [palette.glowStart, palette.glowEnd],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+    }
+
+    private var cardInnerStroke: Color {
+        palette.innerStroke
     }
 
     private var pixelFrame: some View {
         RoundedRectangle(cornerRadius: 18, style: .continuous)
-            .stroke(frameColor, lineWidth: 2)
+            .stroke(palette.frame, lineWidth: 2)
             .overlay(alignment: .topLeading) { pixelCorner(x: -6, y: -6) }
             .overlay(alignment: .topTrailing) { pixelCorner(x: 6, y: -6) }
             .overlay(alignment: .bottomLeading) { pixelCorner(x: -6, y: 6) }
             .overlay(alignment: .bottomTrailing) { pixelCorner(x: 6, y: 6) }
     }
 
-    private var frameColor: Color {
-        accentAdjusted(brightness: lightnessBoost - 0.22, saturation: 0.08)
-            .opacity(colorScheme == .dark ? 0.65 : 0.48)
-    }
-
     private func pixelCorner(x: CGFloat, y: CGFloat) -> some View {
         RoundedRectangle(cornerRadius: 2, style: .continuous)
-            .fill(accentAdjusted(brightness: 0.08))
+            .fill(palette.cornerFill)
             .frame(width: 12, height: 12)
             .overlay(
                 RoundedRectangle(cornerRadius: 2, style: .continuous)
@@ -149,14 +114,52 @@ struct EntryCardView: View {
     }
 
     private var pixelCornerBorderColor: Color {
-        Color.white.opacity(colorScheme == .dark ? 0.32 : 0.68)
+        palette.cornerStroke
     }
 
-    private func accentAdjusted(brightness: CGFloat = 0, saturation: CGFloat = 0) -> Color {
-        guard let adjusted = UIColor(accent).adjusted(brightness: brightness, saturation: saturation) else {
-            return accent
+    private var cardShadowColor: Color {
+        palette.shadow
+    }
+
+    private var palette: CardPalette {
+        CardPalette(accent: accent, colorScheme: colorScheme)
+    }
+}
+
+private struct CardPalette {
+    let top: Color
+    let middle: Color
+    let bottom: Color
+    let glowStart: Color
+    let glowEnd: Color
+    let innerStroke: Color
+    let frame: Color
+    let cornerFill: Color
+    let cornerStroke: Color
+    let shadow: Color
+
+    init(accent: Color, colorScheme: ColorScheme) {
+        let uiAccent = UIColor(accent)
+        let primary = uiAccent
+        let neutral = UIColor { traits in
+            return traits.userInterfaceStyle == .dark ? UIColor(red: 30/255, green: 32/255, blue: 36/255, alpha: 1) : UIColor(white: 0.98, alpha: 1)
         }
-        return Color(adjusted)
+        let highlight = primary.blended(withFraction: colorScheme == .dark ? 0.28 : 0.32, of: UIColor.white)
+        let base = primary.blended(withFraction: 0.55, of: neutral)
+        let depth = primary.adjusted(brightness: colorScheme == .dark ? -0.35 : -0.28, saturation: colorScheme == .dark ? -0.1 : -0.05) ?? primary
+        let edge = primary.adjusted(brightness: colorScheme == .dark ? -0.42 : -0.34, saturation: -0.08) ?? primary
+        let halo = highlight.adjusted(brightness: colorScheme == .dark ? 0.18 : 0.24, saturation: -0.25) ?? highlight
+
+        top = Color(highlight)
+        middle = Color(base)
+        bottom = Color(depth)
+        glowStart = Color(halo.withAlphaComponent(colorScheme == .dark ? 0.32 : 0.46))
+        glowEnd = Color(depth.withAlphaComponent(colorScheme == .dark ? 0.6 : 0.3))
+        innerStroke = Color(highlight.withAlphaComponent(colorScheme == .dark ? 0.25 : 0.35))
+        frame = Color(edge.withAlphaComponent(colorScheme == .dark ? 0.8 : 0.55))
+        cornerFill = Color(highlight.adjusted(brightness: colorScheme == .dark ? 0.05 : 0.12, saturation: -0.18) ?? highlight)
+        cornerStroke = Color(UIColor.white.withAlphaComponent(colorScheme == .dark ? 0.26 : 0.75))
+        shadow = Color(depth.withAlphaComponent(colorScheme == .dark ? 0.5 : 0.22))
     }
 }
 
@@ -172,6 +175,27 @@ private extension UIColor {
         let clampedBrightness = min(max(bright + brightness, 0), 1)
         let clampedSaturation = min(max(sat + saturation, 0), 1)
         return UIColor(hue: hue, saturation: clampedSaturation, brightness: clampedBrightness, alpha: alpha)
+    }
+
+    func blended(withFraction fraction: CGFloat, of color: UIColor) -> UIColor {
+        var r1: CGFloat = 0
+        var g1: CGFloat = 0
+        var b1: CGFloat = 0
+        var a1: CGFloat = 0
+        getRed(&r1, green: &g1, blue: &b1, alpha: &a1)
+
+        var r2: CGFloat = 0
+        var g2: CGFloat = 0
+        var b2: CGFloat = 0
+        var a2: CGFloat = 0
+        color.getRed(&r2, green: &g2, blue: &b2, alpha: &a2)
+
+        let r = r1 + (r2 - r1) * fraction
+        let g = g1 + (g2 - g1) * fraction
+        let b = b1 + (b2 - b1) * fraction
+        let a = a1 + (a2 - a1) * fraction
+
+        return UIColor(red: r, green: g, blue: b, alpha: a)
     }
 }
 
