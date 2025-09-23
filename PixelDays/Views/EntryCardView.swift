@@ -10,8 +10,12 @@ struct EntryCardView: View {
     private let timer = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
 
     private var accent: Color { Color(hex: snapshot.colorHex) }
-    private var titleColor: Color { Color(.label) }
-    private var secondaryColor: Color { Color(.secondaryLabel) }
+    private var titleColor: Color {
+        colorScheme == .dark ? Color.white : Color.black
+    }
+    private var secondaryColor: Color {
+        colorScheme == .dark ? Color.white.opacity(0.8) : Color.black.opacity(0.7)
+    }
 
     private var dateLine: String {
         guard let date = snapshot.entryType == .countUp ? snapshot.startDate : snapshot.targetDate else { return "--" }
@@ -31,12 +35,12 @@ struct EntryCardView: View {
                 VStack(alignment: .leading, spacing: 10) {
                     PixelTag(text: snapshot.entryType.label, tint: accent)
                     Text(snapshot.title)
-                        .font(.system(size: 19, weight: .heavy, design: .rounded))
+                        .font(.system(size: 19, weight: .black, design: .monospaced))
                         .foregroundStyle(titleColor)
                         .lineLimit(2)
                         .multilineTextAlignment(.leading)
                     Text("\(dateLabel): \(dateLine)")
-                        .font(.system(.subheadline, design: .monospaced))
+                        .font(.system(size: 12, weight: .bold, design: .monospaced))
                         .foregroundStyle(secondaryColor)
                 }
                 Spacer(minLength: 8)
@@ -51,7 +55,7 @@ struct EntryCardView: View {
             }
             if let notes = snapshot.notes, !notes.isEmpty {
                 Text(notes)
-                    .font(.system(.footnote, design: .rounded))
+                    .font(.system(size: 11, weight: .medium, design: .monospaced))
                     .foregroundStyle(secondaryColor)
                     .lineLimit(3)
             }
@@ -59,34 +63,42 @@ struct EntryCardView: View {
         .padding(16)
         .background(cardBackground)
         .overlay(pixelFrame)
-        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .clipShape(Rectangle())
         .shadow(color: cardShadowColor, radius: 12, x: 0, y: 6)
-        .contentShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .contentShape(Rectangle())
         .onReceive(timer) { now = $0 }
     }
 
     private var cardBackground: some View {
-        let shape = RoundedRectangle(cornerRadius: 18, style: .continuous)
+        let shape = Rectangle()
         return shape
-            .fill(cardBaseGradient)
-            .overlay(shape.fill(cardNoiseOverlay))
+            .overlay(cardBaseGradient)
             .overlay(shape.stroke(cardInnerStroke, lineWidth: 1))
     }
 
-    private var cardBaseGradient: LinearGradient {
-        LinearGradient(
-            colors: [palette.top, palette.middle, palette.bottom],
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
-        )
+    private var cardBaseGradient: some View {
+        ZStack {
+            LinearGradient(
+                colors: [palette.top, palette.middle, palette.bottom],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            pixelPattern
+        }
     }
 
-    private var cardNoiseOverlay: LinearGradient {
-        LinearGradient(
-            colors: [palette.glowStart, palette.glowEnd],
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
-        )
+    private var pixelPattern: some View {
+        Canvas { context, size in
+            let pixelSize: CGFloat = 2
+            for x in stride(from: 0, through: size.width, by: pixelSize * 2) {
+                for y in stride(from: 0, through: size.height, by: pixelSize * 2) {
+                    let rect = CGRect(x: x, y: y, width: pixelSize, height: pixelSize)
+                    context.fill(Path(rect), with: .color(palette.glowStart))
+                }
+            }
+        }
+        .blendMode(.overlay)
+        .opacity(0.3)
     }
 
     private var cardInnerStroke: Color {
@@ -94,7 +106,7 @@ struct EntryCardView: View {
     }
 
     private var pixelFrame: some View {
-        RoundedRectangle(cornerRadius: 18, style: .continuous)
+        Rectangle()
             .stroke(palette.frame, lineWidth: 2)
             .overlay(alignment: .topLeading) { pixelCorner(x: -6, y: -6) }
             .overlay(alignment: .topTrailing) { pixelCorner(x: 6, y: -6) }
@@ -103,11 +115,11 @@ struct EntryCardView: View {
     }
 
     private func pixelCorner(x: CGFloat, y: CGFloat) -> some View {
-        RoundedRectangle(cornerRadius: 2, style: .continuous)
+        Rectangle()
             .fill(palette.cornerFill)
             .frame(width: 12, height: 12)
             .overlay(
-                RoundedRectangle(cornerRadius: 2, style: .continuous)
+                Rectangle()
                     .stroke(pixelCornerBorderColor, lineWidth: 1)
             )
             .offset(x: x, y: y)
@@ -144,47 +156,47 @@ private struct CardPalette {
         func resolved(_ candidate: UIColor?) -> UIColor { candidate ?? uiAccent }
 
         if colorScheme == .dark {
-            let topColor = resolved(uiAccent.adjusted(brightness: 0.34, saturation: -0.32))
-            let middleColor = resolved(uiAccent.adjusted(brightness: 0.14, saturation: -0.2))
-            let bottomColor = resolved(uiAccent.adjusted(brightness: -0.08, saturation: -0.1))
+            let topColor = resolved(uiAccent.adjusted(brightness: 0.05, saturation: -0.15))
+            let middleColor = resolved(uiAccent.adjusted(brightness: -0.05, saturation: -0.05))
+            let bottomColor = resolved(uiAccent.adjusted(brightness: -0.25, saturation: 0.05))
 
-            let haloStart = resolved(topColor.adjusted(brightness: 0.08, saturation: -0.22))
-            let haloEnd = resolved(bottomColor.adjusted(brightness: -0.1, saturation: 0.04))
-            let frameColor = resolved(bottomColor.adjusted(brightness: -0.16, saturation: -0.08))
-            let cornerColor = resolved(topColor.adjusted(brightness: 0.04, saturation: -0.16))
-            let shadowColor = resolved(bottomColor.adjusted(brightness: -0.14, saturation: -0.12))
+            let haloStart = resolved(topColor.adjusted(brightness: 0.15, saturation: -0.3))
+            let haloEnd = resolved(bottomColor.adjusted(brightness: -0.1, saturation: 0.1))
+            let frameColor = resolved(bottomColor.adjusted(brightness: -0.35, saturation: 0.15))
+            let cornerColor = resolved(topColor.adjusted(brightness: 0.2, saturation: -0.25))
+            let shadowColor = resolved(bottomColor.adjusted(brightness: -0.4, saturation: 0.05))
 
             top = Color(topColor)
             middle = Color(middleColor)
             bottom = Color(bottomColor)
-            glowStart = Color(haloStart.withAlphaComponent(0.38))
-            glowEnd = Color(haloEnd.withAlphaComponent(0.5))
-            innerStroke = Color(topColor.withAlphaComponent(0.28))
-            frame = Color(frameColor.withAlphaComponent(0.64))
+            glowStart = Color(haloStart.withAlphaComponent(0.1))
+            glowEnd = Color(haloEnd.withAlphaComponent(0.2))
+            innerStroke = Color(topColor.withAlphaComponent(0.3))
+            frame = Color(frameColor.withAlphaComponent(0.9))
             cornerFill = Color(cornerColor)
-            cornerStroke = Color(UIColor.white.withAlphaComponent(0.24))
-            shadow = Color(shadowColor.withAlphaComponent(0.48))
+            cornerStroke = Color(UIColor.white.withAlphaComponent(0.1))
+            shadow = Color(shadowColor.withAlphaComponent(0.7))
         } else {
-            let topColor = resolved(uiAccent.adjusted(brightness: 0.26, saturation: -0.36))
-            let middleColor = resolved(uiAccent.adjusted(brightness: 0.08, saturation: -0.22))
-            let bottomColor = resolved(uiAccent.adjusted(brightness: -0.2, saturation: 0.02))
+            let topColor = resolved(uiAccent.adjusted(brightness: 0.55, saturation: -0.4))
+            let middleColor = resolved(uiAccent.adjusted(brightness: 0.45, saturation: -0.25))
+            let bottomColor = resolved(uiAccent.adjusted(brightness: 0.35, saturation: -0.1))
 
-            let haloStart = resolved(topColor.adjusted(brightness: 0.12, saturation: -0.28))
-            let haloEnd = resolved(bottomColor.adjusted(brightness: -0.12, saturation: 0.05))
-            let frameColor = resolved(bottomColor.adjusted(brightness: -0.18, saturation: -0.06))
-            let cornerColor = resolved(topColor.adjusted(brightness: 0.08, saturation: -0.2))
-            let shadowColor = resolved(bottomColor.adjusted(brightness: -0.1, saturation: -0.12))
+            let haloStart = resolved(topColor.adjusted(brightness: 0.05, saturation: -0.15))
+            let haloEnd = resolved(bottomColor.adjusted(brightness: -0.1, saturation: 0.05))
+            let frameColor = resolved(bottomColor.adjusted(brightness: -0.15, saturation: 0.1))
+            let cornerColor = resolved(topColor.adjusted(brightness: 0.02, saturation: -0.05))
+            let shadowColor = resolved(bottomColor.adjusted(brightness: -0.25, saturation: 0.02))
 
             top = Color(topColor)
             middle = Color(middleColor)
             bottom = Color(bottomColor)
-            glowStart = Color(haloStart.withAlphaComponent(0.5))
-            glowEnd = Color(haloEnd.withAlphaComponent(0.26))
-            innerStroke = Color(topColor.withAlphaComponent(0.32))
-            frame = Color(frameColor.withAlphaComponent(0.52))
+            glowStart = Color(haloStart.withAlphaComponent(0.25))
+            glowEnd = Color(haloEnd.withAlphaComponent(0.35))
+            innerStroke = Color(topColor.withAlphaComponent(0.4))
+            frame = Color(frameColor.withAlphaComponent(0.8))
             cornerFill = Color(cornerColor)
-            cornerStroke = Color(UIColor.white.withAlphaComponent(0.74))
-            shadow = Color(shadowColor.withAlphaComponent(0.22))
+            cornerStroke = Color(UIColor.white.withAlphaComponent(0.9))
+            shadow = Color(shadowColor.withAlphaComponent(0.25))
         }
     }
 }
