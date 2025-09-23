@@ -25,28 +25,28 @@ struct PixelNumberView: View {
     }
 
     private var background: some View {
-        RoundedRectangle(cornerRadius: 10, style: .continuous)
-            .fill(Color.white.opacity(0.95))
+        RoundedRectangle(cornerRadius: 6, style: .continuous)
+            .fill(Color.white.opacity(0.98))
             .overlay(
-                LinearGradient(colors: [color.opacity(0.18), color.opacity(0.05)], startPoint: .topLeading, endPoint: .bottomTrailing)
-                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                LinearGradient(colors: [color.opacity(0.35), color.opacity(0.15)], startPoint: .topLeading, endPoint: .bottomTrailing)
+                    .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
             )
             .overlay(
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .stroke(color.opacity(0.45), lineWidth: 1.5)
+                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                    .stroke(color.opacity(0.65), lineWidth: 1.5)
             )
             .overlay(alignment: .topLeading) { pixelCorner(x: -4, y: -4) }
             .overlay(alignment: .bottomTrailing) { pixelCorner(x: 4, y: 4) }
-            .shadow(color: color.opacity(0.18), radius: 8, x: 0, y: 4)
+            .shadow(color: color.opacity(0.25), radius: 6, x: 0, y: 3)
     }
 
     private func pixelCorner(x: CGFloat, y: CGFloat) -> some View {
-        RoundedRectangle(cornerRadius: 2, style: .continuous)
+        Rectangle()
             .fill(color)
-            .frame(width: 10, height: 10)
+            .frame(width: 8, height: 8)
             .overlay(
-                RoundedRectangle(cornerRadius: 2, style: .continuous)
-                    .stroke(Color.white.opacity(0.75), lineWidth: 0.8)
+                Rectangle()
+                    .stroke(Color.white.opacity(0.85), lineWidth: 1)
             )
             .offset(x: x, y: y)
     }
