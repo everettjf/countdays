@@ -6,9 +6,8 @@ struct HomeView: View {
 
     @State private var filter: EntryStore.Filter = .all
     @State private var searchText: String = ""
-    @State private var isPresentingEditor = false
     @State private var editingEntry: Entry?
-    @State private var draft = EntryDraft()
+    @State private var activeDraft: EntryDraft?
     @State private var showImporter = false
     @State private var importSummary: ImportService.Summary?
     @State private var showImportSummary = false
@@ -27,115 +26,36 @@ struct HomeView: View {
 
     var body: some View {
         NavigationStack {
-            ZStack(alignment: .bottomTrailing) {
-                Color(UIColor.systemGroupedBackground).ignoresSafeArea()
-                ScrollView {
-                    LazyVStack(alignment: .leading, spacing: 10) {
-                        header
-                        LazyVGrid(columns: columns, alignment: .leading, spacing: 20) {
-                            if entries.isEmpty {
-                                emptyState
-                                    .gridCellColumns(columns.count)
-                            } else {
-                                ForEach(entries) { entry in
-                                    EntryListItemView(entry: entry) { entry, action in
-                                        handle(action: action, for: entry)
-                                    }
-                                }
-                            }
-                        }
-                        .padding(.horizontal, 16)
-                        .padding(.bottom, 72)
-                    }
-                }
-            }
-            .navigationTitle("Pixel Days Count")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button {
-                        showSettings = true
-                    } label: {
-                        Label("Settings", systemImage: "gearshape")
-                    }
-                }
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button {
-                        draft = EntryDraft(entryType: .countUp, startDate: Date(), timezone: .current)
-                        editingEntry = nil
-                        isPresentingEditor = true
-                    } label: {
-                        Label("Add Entry", systemImage: "plus")
-                    }
-                }
-            }
-            .fullScreenCover(isPresented: $showSettings) {
-                SettingsView(onImport: { showImporter = true },
-                             onImportText: { showTextImporter() },
-                             onExport: exportEntries)
-            }
-            .fileImporter(isPresented: $showImporter, allowedContentTypes: [.json]) { result in
-                switch result {
-                case .success(let url):
-                    let summary = ImportService(store: store).importEntries(from: url)
-                    importSummary = summary
-                    showImportSummary = true
-                case .failure(let error):
-                    let status = ImportService.RowStatus(title: "Import Failed", state: .skipped(error.localizedDescription))
-                    importSummary = ImportService.Summary(statuses: [status])
-                    showImportSummary = true
-                }
-            }
-            .sheet(isPresented: $showImportSummary) {
-                if let summary = importSummary {
-                    ImportSummaryView(summary: summary)
-                }
-            }
-            .sheet(isPresented: $showShareSheet, onDismiss: { exportedURL = nil }) {
-                if let url = exportedURL {
-                    ShareSheet(activityItems: [url])
-                }
-            }
-            .sheet(isPresented: $showTextImport) {
-                TextImportSheet(initialText: pastedJSON) { text in
-                    handlePastedJSON(text)
-                } onCancel: {
-                    showTextImport = false
-                    pastedJSON = ""
-                }
-            }
-            .confirmationDialog("Delete Entry?", isPresented: $showDeleteConfirm, presenting: entryPendingDeletion) { entry in
-                Button("Delete", role: .destructive) {
-                    delete(entry: entry)
-                }
-                Button("Cancel", role: .cancel) {}
-            } message: { _ in
-                Text("This action cannot be undone.")
-            }
-            .sheet(isPresented: $isPresentingEditor) {
-                EntryEditView(draft: draft, isNew: editingEntry == nil) { newDraft in
-                    save(draft: newDraft)
-                } onDelete: {
-                    if let entry = editingEntry {
-                        delete(entry: entry)
-                    }
-                }
-                .presentationDetents([.large, .fraction(0.9)])
-            }
-            .onAppear {
-                store.set(filter: filter)
-            }
-            .onChange(of: filter) { _, newValue in
-                store.set(filter: newValue)
-            }
-            .onChange(of: searchText) { _, newValue in
-                store.set(search: newValue)
-            }
-            .alert("Error", isPresented: $showErrorAlert, actions: {
-                Button("OK") { showErrorAlert = false }
-            }, message: {
-                Text(errorMessage)
-            })
+            mainContent
+        }
+        .navigationTitle("Pixel Days Count")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar { toolbarContent() }
+        .fullScreenCover(isPresented: $showSettings, content: settingsSheet)
+        .fileImporter(isPresented: $showImporter, allowedContentTypes: [.json], onCompletion: handleFileImport)
+        .sheet(isPresented: $showImportSummary, content: importSummarySheet)
+        .sheet(isPresented: $showShareSheet, onDismiss: { exportedURL = nil }, content: shareSheet)
+        .sheet(isPresented: $showTextImport, content: textImportSheet)
+        .confirmationDialog("Delete Entry?", isPresented: $showDeleteConfirm, presenting: entryPendingDeletion, actions: { entry in
+            deleteDialogActions(for: entry)
+        }, message: { entry in
+            deleteDialogMessage(entry)
+        })
+        .sheet(item: $activeDraft, content: editorSheet(for:))
+        .onAppear(perform: configureInitialFilter)
+        .onChange(of: filter) { _, newFilter in
+            updateFilter(newFilter)
+        }
+        .onChange(of: searchText) { _, newSearch in
+            updateSearch(newSearch)
+        }
+        .alert("Error", isPresented: $showErrorAlert, actions: {
+            errorAlertActions()
+        }, message: {
+            errorAlertMessage()
+        })
+        .onChange(of: activeDraft) { _, newDraft in
+            syncEditingEntry(newDraft)
         }
     }
 
@@ -169,6 +89,21 @@ struct HomeView: View {
         .padding(.top, 0)
     }
 
+    private var entriesGrid: some View {
+        LazyVGrid(columns: columns, alignment: .leading, spacing: 20) {
+            if entries.isEmpty {
+                emptyState
+                    .gridCellColumns(columns.count)
+            } else {
+                ForEach(entries) { entry in
+                    entryItem(for: entry)
+                }
+            }
+        }
+        .padding(.horizontal, 16)
+        .padding(.bottom, 72)
+    }
+
     private var emptyState: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("No entries yet")
@@ -189,12 +124,49 @@ struct HomeView: View {
         .padding(.top, 40)
     }
 
+    private var mainContent: some View {
+        ZStack(alignment: .bottomTrailing) {
+            Color(UIColor.systemGroupedBackground).ignoresSafeArea()
+            ScrollView {
+                LazyVStack(alignment: .leading, spacing: 10) {
+                    header
+                    entriesGrid
+                }
+            }
+        }
+    }
+
+    @ToolbarContentBuilder
+    private func toolbarContent() -> some ToolbarContent {
+        ToolbarItem(placement: .navigationBarLeading) {
+            Button {
+                showSettings = true
+            } label: {
+                Label("Settings", systemImage: "gearshape")
+            }
+        }
+        ToolbarItem(placement: .navigationBarTrailing) {
+            Button {
+                editingEntry = nil
+                activeDraft = EntryDraft(entryType: .countUp, startDate: Date(), timezone: .current)
+            } label: {
+                Label("Add Entry", systemImage: "plus")
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func entryItem(for entry: Entry) -> some View {
+        EntryListItemView(entry: entry) { tappedEntry, action in
+            handle(action: action, for: tappedEntry)
+        }
+    }
+
     private func handle(action: EntryAction, for entry: Entry) {
         switch action {
         case .edit:
             editingEntry = entry
-            draft = EntryDraft(entry: entry)
-            isPresentingEditor = true
+            activeDraft = EntryDraft(entry: entry)
         case .togglePin:
             store.togglePin(entry)
         case .duplicate:
@@ -209,6 +181,8 @@ struct HomeView: View {
     private func save(draft: EntryDraft) {
         do {
             try store.upsert(from: draft)
+            editingEntry = nil
+            activeDraft = nil
         } catch {
             errorMessage = error.localizedDescription
             showErrorAlert = true
@@ -261,6 +235,8 @@ struct HomeView: View {
             errorMessage = error.localizedDescription
             showErrorAlert = true
         }
+        activeDraft = nil
+        editingEntry = nil
         entryPendingDeletion = nil
         showDeleteConfirm = false
     }
@@ -279,6 +255,99 @@ struct HomeView: View {
         } catch {
             errorMessage = error.localizedDescription
             showErrorAlert = true
+        }
+    }
+
+    @ViewBuilder
+    private func settingsSheet() -> some View {
+        SettingsView(onImport: { showImporter = true },
+                     onImportText: { showTextImporter() },
+                     onExport: exportEntries)
+    }
+
+    private func handleFileImport(_ result: Result<URL, Error>) {
+        switch result {
+        case .success(let url):
+            let summary = ImportService(store: store).importEntries(from: url)
+            importSummary = summary
+            showImportSummary = true
+        case .failure(let error):
+            let status = ImportService.RowStatus(title: "Import Failed", state: .skipped(error.localizedDescription))
+            importSummary = ImportService.Summary(statuses: [status])
+            showImportSummary = true
+        }
+    }
+
+    @ViewBuilder
+    private func importSummarySheet() -> some View {
+        if let summary = importSummary {
+            ImportSummaryView(summary: summary)
+        }
+    }
+
+    @ViewBuilder
+    private func shareSheet() -> some View {
+        if let url = exportedURL {
+            ShareSheet(activityItems: [url])
+        }
+    }
+
+    private func textImportSheet() -> some View {
+        TextImportSheet(initialText: pastedJSON) { text in
+            handlePastedJSON(text)
+        } onCancel: {
+            showTextImport = false
+            pastedJSON = ""
+        }
+    }
+
+    @ViewBuilder
+    private func deleteDialogActions(for entry: Entry) -> some View {
+        Button("Delete", role: .destructive) {
+            delete(entry: entry)
+        }
+        Button("Cancel", role: .cancel) {}
+    }
+
+    private func deleteDialogMessage(_ entry: Entry) -> Text {
+        Text("This action cannot be undone.")
+    }
+
+    private func editorSheet(for draft: EntryDraft) -> some View {
+        EntryEditView(draft: draft, isNew: editingEntry == nil) { newDraft in
+            save(draft: newDraft)
+        } onDelete: {
+            if let entry = editingEntry {
+                delete(entry: entry)
+            }
+        }
+        .presentationDetents([.large, .fraction(0.9)])
+    }
+
+    private func configureInitialFilter() {
+        store.set(filter: filter)
+    }
+
+    private func updateFilter(_ filter: EntryStore.Filter) {
+        store.set(filter: filter)
+    }
+
+    private func updateSearch(_ text: String) {
+        store.set(search: text)
+    }
+
+    @ViewBuilder
+    private func errorAlertActions() -> some View {
+        Button("OK") { showErrorAlert = false }
+    }
+
+    private func errorAlertMessage() -> Text {
+        Text(errorMessage)
+    }
+
+    private func syncEditingEntry(_ draft: EntryDraft?) {
+        if draft == nil {
+            editingEntry = nil
         }
     }
 }

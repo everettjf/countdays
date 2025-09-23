@@ -1,6 +1,6 @@
 import Foundation
 
-struct EntryDraft: Identifiable {
+struct EntryDraft: Identifiable, Equatable {
     var id: UUID
     var title: String
     var entryType: EntryType

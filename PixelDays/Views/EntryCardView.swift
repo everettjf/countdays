@@ -1,9 +1,11 @@
 import SwiftUI
 import Combine
+import UIKit
 
 struct EntryCardView: View {
     let snapshot: EntrySnapshot
     @State private var now: Date = Date()
+    @Environment(\.colorScheme) private var colorScheme
 
     private let timer = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
 
@@ -64,32 +66,112 @@ struct EntryCardView: View {
     }
 
     private var cardBackground: some View {
-        RoundedRectangle(cornerRadius: 18, style: .continuous)
-            .fill(Color.white)
-            .overlay(
-                LinearGradient(colors: [accent.opacity(0.20), accent.opacity(0.07)], startPoint: .topLeading, endPoint: .bottomTrailing)
-                    .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        let shape = RoundedRectangle(cornerRadius: 18, style: .continuous)
+        return shape
+            .fill(
+                LinearGradient(
+                    colors: gradientColors,
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
             )
+            .overlay(
+                shape
+                    .fill(highlightGradient)
+            )
+            .overlay(
+                shape
+                    .fill(glowOverlay)
+            )
+    }
+
+    private var gradientColors: [Color] {
+        [
+            accentAdjusted(brightness: lightnessBoost + 0.18, saturation: -0.16),
+            accentAdjusted(brightness: lightnessBoost + 0.04),
+            accentAdjusted(brightness: lightnessBoost - 0.14, saturation: 0.12)
+        ]
+    }
+
+    private var highlightGradient: RadialGradient {
+        RadialGradient(
+            colors: [
+                accentAdjusted(brightness: lightnessBoost + 0.28, saturation: -0.28)
+                    .opacity(colorScheme == .dark ? 0.36 : 0.46),
+                Color.clear
+            ],
+            center: .topLeading,
+            startRadius: 0,
+            endRadius: 220
+        )
+    }
+
+    private var glowOverlay: LinearGradient {
+        LinearGradient(
+            colors: [
+                Color.white.opacity(colorScheme == .dark ? 0.05 : 0.22),
+                Color.white.opacity(0.0),
+                accentAdjusted(brightness: lightnessBoost - 0.22, saturation: 0.18)
+                    .opacity(colorScheme == .dark ? 0.35 : 0.18)
+            ],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+    }
+
+    private var lightnessBoost: CGFloat {
+        colorScheme == .dark ? -0.06 : 0.08
     }
 
     private var pixelFrame: some View {
         RoundedRectangle(cornerRadius: 18, style: .continuous)
-            .stroke(accent.opacity(0.45), lineWidth: 2)
+            .stroke(frameColor, lineWidth: 2)
             .overlay(alignment: .topLeading) { pixelCorner(x: -6, y: -6) }
             .overlay(alignment: .topTrailing) { pixelCorner(x: 6, y: -6) }
             .overlay(alignment: .bottomLeading) { pixelCorner(x: -6, y: 6) }
             .overlay(alignment: .bottomTrailing) { pixelCorner(x: 6, y: 6) }
     }
 
+    private var frameColor: Color {
+        accentAdjusted(brightness: lightnessBoost - 0.22, saturation: 0.08)
+            .opacity(colorScheme == .dark ? 0.65 : 0.48)
+    }
+
     private func pixelCorner(x: CGFloat, y: CGFloat) -> some View {
         RoundedRectangle(cornerRadius: 2, style: .continuous)
-            .fill(accent)
+            .fill(accentAdjusted(brightness: 0.08))
             .frame(width: 12, height: 12)
             .overlay(
                 RoundedRectangle(cornerRadius: 2, style: .continuous)
-                    .stroke(Color.white.opacity(0.75), lineWidth: 1)
+                    .stroke(pixelCornerBorderColor, lineWidth: 1)
             )
             .offset(x: x, y: y)
+    }
+
+    private var pixelCornerBorderColor: Color {
+        Color.white.opacity(colorScheme == .dark ? 0.32 : 0.68)
+    }
+
+    private func accentAdjusted(brightness: CGFloat = 0, saturation: CGFloat = 0) -> Color {
+        guard let adjusted = UIColor(accent).adjusted(brightness: brightness, saturation: saturation) else {
+            return accent
+        }
+        return Color(adjusted)
+    }
+}
+
+private extension UIColor {
+    func adjusted(brightness: CGFloat, saturation: CGFloat) -> UIColor? {
+        var hue: CGFloat = 0
+        var sat: CGFloat = 0
+        var bright: CGFloat = 0
+        var alpha: CGFloat = 0
+        guard getHue(&hue, saturation: &sat, brightness: &bright, alpha: &alpha) else {
+            return nil
+        }
+        let clampedBrightness = min(max(bright + brightness, 0), 1)
+        let clampedSaturation = min(max(sat + saturation, 0), 1)
+        return UIColor(hue: hue, saturation: clampedSaturation, brightness: clampedBrightness, alpha: alpha)
     }
 }
 

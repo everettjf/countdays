@@ -13,32 +13,35 @@ struct EntryListItemView: View {
     var onAction: (Entry, EntryAction) -> Void
 
     var body: some View {
-        EntryCardView(snapshot: EntrySnapshot(entry: entry))
-            .contextMenu {
-                Button(entry.isPinned ? "Unpin" : "Pin") {
-                    onAction(entry, .togglePin)
-                }
-                Button(entry.isArchived ? "Unarchive" : "Archive") {
-                    onAction(entry, .toggleArchive)
-                }
-                Button("Duplicate") {
-                    onAction(entry, .duplicate)
-                }
-                Divider()
-                Button("Edit") {
-                    onAction(entry, .edit)
-                }
-                Button(role: .destructive) {
-                    onAction(entry, .delete)
-                } label: {
-                    Label("Delete", systemImage: "trash")
-                }
+        Button {
+            onAction(entry, .edit)
+        } label: {
+            EntryCardView(snapshot: EntrySnapshot(entry: entry))
+        }
+        .buttonStyle(.plain)
+        .contextMenu {
+            Button(entry.isPinned ? "Unpin" : "Pin") {
+                onAction(entry, .togglePin)
             }
-            .onTapGesture {
+            Button(entry.isArchived ? "Unarchive" : "Archive") {
+                onAction(entry, .toggleArchive)
+            }
+            Button("Duplicate") {
+                onAction(entry, .duplicate)
+            }
+            Divider()
+            Button("Edit") {
                 onAction(entry, .edit)
             }
-            .accessibilityElement(children: .combine)
-            .accessibilityLabel(accessibilityLabel)
+            Button(role: .destructive) {
+                onAction(entry, .delete)
+            } label: {
+                Label("Delete", systemImage: "trash")
+            }
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(accessibilityLabel)
+        .accessibilityHint("Double tap to edit entry")
     }
 
     private var accessibilityLabel: String {
