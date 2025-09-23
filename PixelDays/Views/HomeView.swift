@@ -127,9 +127,10 @@ struct HomeView: View {
     private var mainContent: some View {
         ZStack(alignment: .bottomTrailing) {
             Color(UIColor.systemGroupedBackground).ignoresSafeArea()
-            ScrollView {
-                LazyVStack(alignment: .leading, spacing: 10) {
-                    header
+            VStack(spacing: 0) {
+                header
+                    .padding(.top, 12)
+                ScrollView {
                     entriesGrid
                 }
             }

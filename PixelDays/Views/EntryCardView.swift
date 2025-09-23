@@ -140,26 +140,52 @@ private struct CardPalette {
 
     init(accent: Color, colorScheme: ColorScheme) {
         let uiAccent = UIColor(accent)
-        let primary = uiAccent
-        let neutral = UIColor { traits in
-            return traits.userInterfaceStyle == .dark ? UIColor(red: 30/255, green: 32/255, blue: 36/255, alpha: 1) : UIColor(white: 0.98, alpha: 1)
-        }
-        let highlight = primary.blended(withFraction: colorScheme == .dark ? 0.28 : 0.32, of: UIColor.white)
-        let base = primary.blended(withFraction: 0.55, of: neutral)
-        let depth = primary.adjusted(brightness: colorScheme == .dark ? -0.35 : -0.28, saturation: colorScheme == .dark ? -0.1 : -0.05) ?? primary
-        let edge = primary.adjusted(brightness: colorScheme == .dark ? -0.42 : -0.34, saturation: -0.08) ?? primary
-        let halo = highlight.adjusted(brightness: colorScheme == .dark ? 0.18 : 0.24, saturation: -0.25) ?? highlight
 
-        top = Color(highlight)
-        middle = Color(base)
-        bottom = Color(depth)
-        glowStart = Color(halo.withAlphaComponent(colorScheme == .dark ? 0.32 : 0.46))
-        glowEnd = Color(depth.withAlphaComponent(colorScheme == .dark ? 0.6 : 0.3))
-        innerStroke = Color(highlight.withAlphaComponent(colorScheme == .dark ? 0.25 : 0.35))
-        frame = Color(edge.withAlphaComponent(colorScheme == .dark ? 0.8 : 0.55))
-        cornerFill = Color(highlight.adjusted(brightness: colorScheme == .dark ? 0.05 : 0.12, saturation: -0.18) ?? highlight)
-        cornerStroke = Color(UIColor.white.withAlphaComponent(colorScheme == .dark ? 0.26 : 0.75))
-        shadow = Color(depth.withAlphaComponent(colorScheme == .dark ? 0.5 : 0.22))
+        func resolved(_ candidate: UIColor?) -> UIColor { candidate ?? uiAccent }
+
+        if colorScheme == .dark {
+            let topColor = resolved(uiAccent.adjusted(brightness: 0.34, saturation: -0.32))
+            let middleColor = resolved(uiAccent.adjusted(brightness: 0.14, saturation: -0.2))
+            let bottomColor = resolved(uiAccent.adjusted(brightness: -0.08, saturation: -0.1))
+
+            let haloStart = resolved(topColor.adjusted(brightness: 0.08, saturation: -0.22))
+            let haloEnd = resolved(bottomColor.adjusted(brightness: -0.1, saturation: 0.04))
+            let frameColor = resolved(bottomColor.adjusted(brightness: -0.16, saturation: -0.08))
+            let cornerColor = resolved(topColor.adjusted(brightness: 0.04, saturation: -0.16))
+            let shadowColor = resolved(bottomColor.adjusted(brightness: -0.14, saturation: -0.12))
+
+            top = Color(topColor)
+            middle = Color(middleColor)
+            bottom = Color(bottomColor)
+            glowStart = Color(haloStart.withAlphaComponent(0.38))
+            glowEnd = Color(haloEnd.withAlphaComponent(0.5))
+            innerStroke = Color(topColor.withAlphaComponent(0.28))
+            frame = Color(frameColor.withAlphaComponent(0.64))
+            cornerFill = Color(cornerColor)
+            cornerStroke = Color(UIColor.white.withAlphaComponent(0.24))
+            shadow = Color(shadowColor.withAlphaComponent(0.48))
+        } else {
+            let topColor = resolved(uiAccent.adjusted(brightness: 0.26, saturation: -0.36))
+            let middleColor = resolved(uiAccent.adjusted(brightness: 0.08, saturation: -0.22))
+            let bottomColor = resolved(uiAccent.adjusted(brightness: -0.2, saturation: 0.02))
+
+            let haloStart = resolved(topColor.adjusted(brightness: 0.12, saturation: -0.28))
+            let haloEnd = resolved(bottomColor.adjusted(brightness: -0.12, saturation: 0.05))
+            let frameColor = resolved(bottomColor.adjusted(brightness: -0.18, saturation: -0.06))
+            let cornerColor = resolved(topColor.adjusted(brightness: 0.08, saturation: -0.2))
+            let shadowColor = resolved(bottomColor.adjusted(brightness: -0.1, saturation: -0.12))
+
+            top = Color(topColor)
+            middle = Color(middleColor)
+            bottom = Color(bottomColor)
+            glowStart = Color(haloStart.withAlphaComponent(0.5))
+            glowEnd = Color(haloEnd.withAlphaComponent(0.26))
+            innerStroke = Color(topColor.withAlphaComponent(0.32))
+            frame = Color(frameColor.withAlphaComponent(0.52))
+            cornerFill = Color(cornerColor)
+            cornerStroke = Color(UIColor.white.withAlphaComponent(0.74))
+            shadow = Color(shadowColor.withAlphaComponent(0.22))
+        }
     }
 }
 
