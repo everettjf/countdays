@@ -4,6 +4,7 @@ struct PixelNumberView: View {
     let value: Int
     var label: String = "Days"
     var color: Color = Color(hex: "#00E0A4")
+    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         VStack(alignment: .trailing, spacing: 2) {
@@ -12,12 +13,12 @@ struct PixelNumberView: View {
                 .lineLimit(1)
                 .minimumScaleFactor(0.5)
                 .allowsTightening(true)
-                .foregroundColor(Color(.label))
+                .foregroundColor(textColor)
             Text(label.uppercased())
                 .font(.system(.caption2, design: .monospaced).weight(.semibold))
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
-                .foregroundColor(Color(.secondaryLabel))
+                .foregroundColor(secondaryTextColor)
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
@@ -26,9 +27,9 @@ struct PixelNumberView: View {
 
     private var background: some View {
         RoundedRectangle(cornerRadius: 6, style: .continuous)
-            .fill(Color.white.opacity(0.98))
+            .fill(backgroundColor)
             .overlay(
-                LinearGradient(colors: [color.opacity(0.35), color.opacity(0.15)], startPoint: .topLeading, endPoint: .bottomTrailing)
+                LinearGradient(colors: gradientColors, startPoint: .topLeading, endPoint: .bottomTrailing)
                     .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
             )
             .overlay(
@@ -38,6 +39,38 @@ struct PixelNumberView: View {
             .overlay(alignment: .topLeading) { pixelCorner(x: -4, y: -4) }
             .overlay(alignment: .bottomTrailing) { pixelCorner(x: 4, y: 4) }
             .shadow(color: color.opacity(0.25), radius: 6, x: 0, y: 3)
+    }
+
+    private var backgroundColor: Color {
+        if colorScheme == .dark {
+            return Color.black.opacity(0.85)
+        } else {
+            return Color.white.opacity(0.98)
+        }
+    }
+
+    private var gradientColors: [Color] {
+        if colorScheme == .dark {
+            return [color.opacity(0.6), color.opacity(0.3)]
+        } else {
+            return [color.opacity(0.35), color.opacity(0.15)]
+        }
+    }
+
+    private var textColor: Color {
+        if colorScheme == .dark {
+            return Color.white
+        } else {
+            return Color.black
+        }
+    }
+
+    private var secondaryTextColor: Color {
+        if colorScheme == .dark {
+            return Color.white.opacity(0.8)
+        } else {
+            return Color.black.opacity(0.7)
+        }
     }
 
     private func pixelCorner(x: CGFloat, y: CGFloat) -> some View {
