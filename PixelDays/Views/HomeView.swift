@@ -192,6 +192,7 @@ struct HomeView: View {
     }
 
     private func showTextImporter() {
+        print("🔍 Debug: Paste JSON button clicked - showing text importer")
         pastedJSON = ""
         showTextImport = true
     }
@@ -262,7 +263,10 @@ struct HomeView: View {
 
     @ViewBuilder
     private func settingsSheet() -> some View {
-        SettingsView(onImport: { showImporter = true },
+        SettingsView(onImport: {
+            print("🔍 Debug: Import JSON button clicked - showing file importer")
+            showImporter = true
+        },
                      onImportText: { showTextImporter() },
                      onExport: exportEntries)
     }

@@ -10,32 +10,36 @@ struct SettingsView: View {
         NavigationStack {
             List {
                 Section("Data") {
-                    VStack(alignment: .leading, spacing: 12) {
-                        Button { dismissAnd(onImport) } label: {
-                            Label("Import JSON", systemImage: "tray.and.arrow.down")
-                        }
-                        Button { dismissAnd(onImportText) } label: {
-                            Label("Paste JSON", systemImage: "doc.on.doc")
-                        }
-                        Text("Import from a file or paste JSON directly. You'll review the summary before anything is saved.")
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-                    }
-
-                    VStack(alignment: .leading, spacing: 6) {
-                        Button { dismissAnd(onExport) } label: {
-                            Label("Export JSON", systemImage: "square.and.arrow.up")
-                        }
-                        Text("Create a portable snapshot using the same schema—great for backups or sharing.")
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-                    }
-
+                    
                     NavigationLink {
                         ImportExportGuideView(onImport: { dismissAnd(onImport) },
                                                onExport: { dismissAnd(onExport) })
                     } label: {
                         Label("Import & Export Guide", systemImage: "questionmark.circle")
+                    }
+                    
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Import from a file or paste JSON directly. You'll review the summary before anything is saved.")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                        HStack {
+                            Button { dismissAnd(onImport) } label: {
+                                Label("Import JSON", systemImage: "tray.and.arrow.down")
+                            }
+                            Divider()
+                            Button { dismissAnd(onImportText) } label: {
+                                Label("Paste JSON", systemImage: "doc.on.doc")
+                            }
+                        }
+                    }
+
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("Create a portable snapshot using the same schema—great for backups or sharing.")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                        Button { dismissAnd(onExport) } label: {
+                            Label("Export JSON", systemImage: "square.and.arrow.up")
+                        }
                     }
                 }
 
