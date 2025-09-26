@@ -27,10 +27,10 @@ struct HomeView: View {
     var body: some View {
         NavigationStack {
             mainContent
+                .navigationTitle("Pixel Days Count")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar { toolbarContent() }
         }
-        .navigationTitle("Pixel Days Count")
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar { toolbarContent() }
         .fullScreenCover(isPresented: $showSettings, content: settingsSheet)
         .fileImporter(isPresented: $showImporter, allowedContentTypes: [.json], onCompletion: handleFileImport)
         .sheet(isPresented: $showImportSummary, content: importSummarySheet)

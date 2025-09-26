@@ -158,49 +158,49 @@ private struct CardPalette {
         func resolved(_ candidate: UIColor?) -> UIColor { candidate ?? uiAccent }
 
         if colorScheme == .dark {
-            // Dark theme: Vibrant, modern colors with electric glow
-            let baseColor = resolved(uiAccent.adjusted(brightness: -0.1, saturation: 0.5))
-            let topColor = resolved(baseColor.adjusted(brightness: 0.3, saturation: 0.2))
-            let middleColor = resolved(baseColor.adjusted(brightness: 0.1, saturation: 0.3))
-            let bottomColor = resolved(baseColor.adjusted(brightness: -0.2, saturation: 0.4))
+            // Dark theme: Softer, modern colors with subtle glow
+            let baseColor = resolved(uiAccent.adjusted(brightness: 0.1, saturation: 0.3))
+            let topColor = resolved(baseColor.adjusted(brightness: 0.4, saturation: 0.1))
+            let middleColor = resolved(baseColor.adjusted(brightness: 0.2, saturation: 0.2))
+            let bottomColor = resolved(baseColor.adjusted(brightness: 0.0, saturation: 0.25))
 
-            let electricGlow = resolved(uiAccent.adjusted(brightness: 0.4, saturation: 0.6))
-            let frameColor = resolved(electricGlow.adjusted(brightness: -0.1, saturation: 0.2))
-            let cornerColor = resolved(electricGlow.adjusted(brightness: 0.2, saturation: -0.1))
-            let shadowColor = resolved(bottomColor.adjusted(brightness: -0.3, saturation: 0.2))
+            let subtleGlow = resolved(uiAccent.adjusted(brightness: 0.3, saturation: 0.4))
+            let frameColor = resolved(subtleGlow.adjusted(brightness: 0.0, saturation: 0.15))
+            let cornerColor = resolved(subtleGlow.adjusted(brightness: 0.3, saturation: 0.0))
+            let shadowColor = resolved(bottomColor.adjusted(brightness: -0.2, saturation: 0.1))
 
             top = Color(topColor)
             middle = Color(middleColor)
             bottom = Color(bottomColor)
-            glowStart = Color(electricGlow.withAlphaComponent(0.6))
-            glowEnd = Color(bottomColor.withAlphaComponent(0.4))
-            innerStroke = Color(electricGlow.withAlphaComponent(0.9))
-            frame = Color(frameColor.withAlphaComponent(1.0))
+            glowStart = Color(subtleGlow.withAlphaComponent(0.4))
+            glowEnd = Color(bottomColor.withAlphaComponent(0.3))
+            innerStroke = Color(subtleGlow.withAlphaComponent(0.6))
+            frame = Color(frameColor.withAlphaComponent(0.8))
             cornerFill = Color(cornerColor)
-            cornerStroke = Color(electricGlow.withAlphaComponent(1.0))
-            shadow = Color(shadowColor.withAlphaComponent(0.9))
+            cornerStroke = Color(subtleGlow.withAlphaComponent(0.7))
+            shadow = Color(shadowColor.withAlphaComponent(0.6))
         } else {
-            // Light theme: Fresh, energetic colors with modern gradients
-            let baseColor = resolved(uiAccent.adjusted(brightness: 0.4, saturation: 0.4))
-            let topColor = resolved(baseColor.adjusted(brightness: 0.3, saturation: -0.2))
-            let middleColor = resolved(baseColor.adjusted(brightness: 0.1, saturation: 0.1))
-            let bottomColor = resolved(baseColor.adjusted(brightness: -0.1, saturation: 0.3))
+            // Light theme: Soft, pastel colors with gentle gradients
+            let baseColor = resolved(uiAccent.adjusted(brightness: 0.6, saturation: 0.25))
+            let topColor = resolved(baseColor.adjusted(brightness: 0.2, saturation: -0.15))
+            let middleColor = resolved(baseColor.adjusted(brightness: 0.1, saturation: 0.05))
+            let bottomColor = resolved(baseColor.adjusted(brightness: 0.0, saturation: 0.15))
 
-            let brightGlow = resolved(uiAccent.adjusted(brightness: 0.6, saturation: 0.5))
-            let frameColor = resolved(bottomColor.adjusted(brightness: -0.15, saturation: 0.3))
-            let cornerColor = resolved(brightGlow.adjusted(brightness: 0.2, saturation: 0.1))
-            let shadowColor = resolved(bottomColor.adjusted(brightness: -0.25, saturation: 0.2))
+            let softGlow = resolved(uiAccent.adjusted(brightness: 0.4, saturation: 0.3))
+            let frameColor = resolved(softGlow.adjusted(brightness: 0.0, saturation: 0.2))
+            let cornerColor = resolved(softGlow.adjusted(brightness: 0.3, saturation: 0.1))
+            let shadowColor = resolved(bottomColor.adjusted(brightness: -0.15, saturation: 0.1))
 
             top = Color(topColor)
             middle = Color(middleColor)
             bottom = Color(bottomColor)
-            glowStart = Color(brightGlow.withAlphaComponent(0.7))
-            glowEnd = Color(bottomColor.withAlphaComponent(0.5))
-            innerStroke = Color(brightGlow.withAlphaComponent(0.8))
-            frame = Color(frameColor.withAlphaComponent(1.0))
+            glowStart = Color(softGlow.withAlphaComponent(0.4))
+            glowEnd = Color(bottomColor.withAlphaComponent(0.3))
+            innerStroke = Color(softGlow.withAlphaComponent(0.5))
+            frame = Color(frameColor.withAlphaComponent(0.7))
             cornerFill = Color(cornerColor)
-            cornerStroke = Color(UIColor.white.withAlphaComponent(1.0))
-            shadow = Color(shadowColor.withAlphaComponent(0.5))
+            cornerStroke = Color(UIColor.white.withAlphaComponent(0.8))
+            shadow = Color(shadowColor.withAlphaComponent(0.3))
         }
     }
 }
