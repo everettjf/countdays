@@ -10,7 +10,7 @@ struct SettingsView: View {
         NavigationStack {
             List {
                 Section("Data") {
-                    VStack(alignment: .leading, spacing: 6) {
+                    VStack(alignment: .leading, spacing: 12) {
                         Button { dismissAnd(onImport) } label: {
                             Label("Import JSON", systemImage: "tray.and.arrow.down")
                         }
