@@ -31,7 +31,9 @@ struct EntryCardView: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .top, spacing: 14) {
                 VStack(alignment: .leading, spacing: 10) {
-                    PixelTag(text: snapshot.entryType.label, tint: accent)
+                    PixelTag(text: snapshot.entryType.label,
+                             tint: accent,
+                             textColorOverride: palette.primaryTextColor)
                     Text(snapshot.title)
                         .font(.system(size: 19, weight: .black, design: .monospaced))
                         .foregroundStyle(titleColor)
@@ -222,7 +224,9 @@ private struct CardPalette {
                                                                                 frame: Color,
                                                                                 cornerFill: Color,
                                                                                 cornerStroke: Color,
-                                                                                shadow: Color) {
+                                                                                shadow: Color,
+                                                                                primaryTextColor: Color,
+                                                                                secondaryTextColor: Color) {
         func uiColor(for hex: String) -> UIColor {
             UIColor(Color(hex: hex))
         }
@@ -240,18 +244,32 @@ private struct CardPalette {
         let glowStartColor = paletteColor(at: 1, fallback: topColor)
         let glowEndColor = paletteColor(at: 3, fallback: bottomColor)
 
+        let topSwiftColor = Color(topColor)
+        let midSwiftColor = Color(midColor)
+        let bottomSwiftColor = Color(bottomColor)
+        let textColors = CardPalette.recommendedTextColors(for: topSwiftColor,
+                                                          middle: midSwiftColor,
+                                                          bottom: bottomSwiftColor)
+
         return (
-            top: Color(topColor),
-            middle: Color(midColor),
-            bottom: Color(bottomColor),
+            top: topSwiftColor,
+            middle: midSwiftColor,
+            bottom: bottomSwiftColor,
             glowStart: Color(glowStartColor.withAlphaComponent(0.55)),
             glowEnd: Color(glowEndColor.withAlphaComponent(0.35)),
             innerStroke: Color(glowStartColor.withAlphaComponent(0.65)),
             frame: Color(glowEndColor.withAlphaComponent(0.7)),
             cornerFill: Color(midColor),
             cornerStroke: Color(topColor.withAlphaComponent(0.75)),
-            shadow: Color(bottomColor.withAlphaComponent(0.4))
+            shadow: Color(bottomColor.withAlphaComponent(0.4)),
+            primaryTextColor: textColors.0,
+            secondaryTextColor: textColors.1
         )
+    }
+
+    static func recommendedTextGradient(for top: Color, middle: Color, bottom: Color) -> LinearGradient {
+        let colors = recommendedTextColors(for: top, middle: middle, bottom: bottom)
+        return LinearGradient(colors: [colors.0, colors.1], startPoint: .top, endPoint: .bottom)
     }
 
     private static func recommendedTextColors(for top: Color, middle: Color, bottom: Color) -> (Color, Color) {

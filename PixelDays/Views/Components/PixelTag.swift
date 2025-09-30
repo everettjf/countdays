@@ -3,6 +3,7 @@ import SwiftUI
 struct PixelTag: View {
     let text: String
     var tint: Color = Color(hex: "#00E5FF")
+    var textColorOverride: Color?
 
     var body: some View {
         Text(text.uppercased())
@@ -31,14 +32,14 @@ struct PixelTag: View {
     }
 
     private var textColor: Color {
-        Color.black.opacity(0.82)
+        textColorOverride ?? PixelTag.recommendedTextColor(for: [topTint, midTint, baseTint])
     }
 
     private var backgroundGradient: LinearGradient {
         LinearGradient(
             colors: [
-                tint.opacity(0.28),
-                tint.opacity(0.1)
+                topTint.opacity(0.85),
+                midTint.opacity(0.25)
             ],
             startPoint: .topLeading,
             endPoint: .bottomTrailing
@@ -48,8 +49,8 @@ struct PixelTag: View {
     private var borderGradient: LinearGradient {
         LinearGradient(
             colors: [
-                tint.opacity(0.55),
-                tint.opacity(0.25)
+                topTint.opacity(0.55),
+                baseTint.opacity(0.22)
             ],
             startPoint: .topLeading,
             endPoint: .bottomTrailing
@@ -59,12 +60,53 @@ struct PixelTag: View {
     private var highlightGradient: LinearGradient {
         LinearGradient(
             colors: [
-                tint.opacity(0.4),
-                tint.opacity(0.18)
+                topTint.opacity(0.4),
+                midTint.opacity(0.18)
             ],
             startPoint: .topLeading,
             endPoint: .bottomTrailing
         )
+    }
+
+    private var topTint: Color { tint }
+    private var midTint: Color { tint.opacity(0.6) }
+private var baseTint: Color { tint.opacity(0.4) }
+
+    private static func recommendedTextColor(for colors: [Color]) -> Color {
+        let luminance = averageLuminance(colors: colors)
+        if luminance > 0.6 {
+            return Color.black.opacity(0.9)
+        } else {
+            return Color.white
+        }
+    }
+
+    private static func averageLuminance(colors: [Color]) -> CGFloat {
+        let luminances = colors.compactMap { UIColor($0).relativeLuminance }
+        guard !luminances.isEmpty else { return 0.5 }
+        let sum = luminances.reduce(0, +)
+        return sum / CGFloat(luminances.count)
+    }
+}
+
+private extension UIColor {
+    var relativeLuminance: CGFloat? {
+        var red: CGFloat = 0
+        var green: CGFloat = 0
+        var blue: CGFloat = 0
+        var alpha: CGFloat = 0
+        guard getRed(&red, green: &green, blue: &blue, alpha: &alpha) else {
+            return nil
+        }
+
+        func adjusted(_ value: CGFloat) -> CGFloat {
+            value <= 0.03928 ? value / 12.92 : pow((value + 0.055) / 1.055, 2.4)
+        }
+
+        let r = adjusted(red)
+        let g = adjusted(green)
+        let b = adjusted(blue)
+        return 0.2126 * r + 0.7152 * g + 0.0722 * b
     }
 }
 
