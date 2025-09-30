@@ -110,27 +110,11 @@ struct EntryCardView: View {
 
     private var pixelFrame: some View {
         RoundedRectangle(cornerRadius: 16, style: .continuous)
-            .stroke(palette.frame, lineWidth: 3)
-            .overlay(alignment: .topLeading) { modernCorner(x: -8, y: -8) }
-            .overlay(alignment: .topTrailing) { modernCorner(x: 8, y: -8) }
-            .overlay(alignment: .bottomLeading) { modernCorner(x: -8, y: 8) }
-            .overlay(alignment: .bottomTrailing) { modernCorner(x: 8, y: 8) }
-    }
-
-    private func modernCorner(x: CGFloat, y: CGFloat) -> some View {
-        Circle()
-            .fill(palette.cornerFill)
-            .frame(width: 16, height: 16)
+            .stroke(palette.frame, lineWidth: 2.4)
             .overlay(
-                Circle()
-                    .stroke(pixelCornerBorderColor, lineWidth: 2)
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .stroke(palette.innerStroke.opacity(0.5), lineWidth: 1)
             )
-            .shadow(color: palette.cornerFill.opacity(0.5), radius: 4, x: 0, y: 2)
-            .offset(x: x, y: y)
-    }
-
-    private var pixelCornerBorderColor: Color {
-        palette.cornerStroke
     }
 
     private var cardShadowColor: Color {
