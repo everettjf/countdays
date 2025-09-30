@@ -12,12 +12,8 @@ struct EntryCardView: View {
     private var accent: Color { Color(hex: snapshot.colorHex) }
 
     // Fixed professional colors - not affected by system color scheme
-    private var titleColor: Color {
-        professionalPalette.titleColor
-    }
-    private var secondaryColor: Color {
-        professionalPalette.secondaryColor
-    }
+    private var titleColor: Color { palette.primaryTextColor }
+    private var secondaryColor: Color { palette.secondaryTextColor }
 
     private var dateLine: String {
         guard let date = snapshot.entryType == .countUp ? snapshot.startDate : snapshot.targetDate else { return "--" }
@@ -125,9 +121,6 @@ struct EntryCardView: View {
         CardPalette(accent: accent, accentHex: snapshot.colorHex, colorScheme: colorScheme)
     }
 
-    private var professionalPalette: ProfessionalCardPalette {
-        ProfessionalCardPalette.scheme(for: accent)
-    }
 }
 
 private struct CardPalette {
@@ -141,6 +134,8 @@ private struct CardPalette {
     let cornerFill: Color
     let cornerStroke: Color
     let shadow: Color
+    let primaryTextColor: Color
+    let secondaryTextColor: Color
 
     init(accent: Color, accentHex: String, colorScheme: ColorScheme) {
         if let trending = TrendingCardPalettes.palette(for: accentHex) {
@@ -155,6 +150,9 @@ private struct CardPalette {
             cornerFill = components.cornerFill
             cornerStroke = components.cornerStroke
             shadow = components.shadow
+            (primaryTextColor, secondaryTextColor) = CardPalette.recommendedTextColors(for: components.top,
+                                                                                       middle: components.middle,
+                                                                                       bottom: components.bottom)
             return
         }
 
@@ -184,6 +182,9 @@ private struct CardPalette {
             cornerFill = Color(cornerColor)
             cornerStroke = Color(subtleGlow.withAlphaComponent(0.7))
             shadow = Color(shadowColor.withAlphaComponent(0.6))
+            (primaryTextColor, secondaryTextColor) = CardPalette.recommendedTextColors(for: Color(topColor),
+                                                                                       middle: Color(middleColor),
+                                                                                       bottom: Color(bottomColor))
         } else {
             // Light theme: Soft, pastel colors with gentle gradients
             let baseColor = resolved(uiAccent.adjusted(brightness: 0.6, saturation: 0.25))
@@ -206,6 +207,9 @@ private struct CardPalette {
             cornerFill = Color(cornerColor)
             cornerStroke = Color(UIColor.white.withAlphaComponent(0.8))
             shadow = Color(shadowColor.withAlphaComponent(0.3))
+            (primaryTextColor, secondaryTextColor) = CardPalette.recommendedTextColors(for: Color(topColor),
+                                                                                       middle: Color(middleColor),
+                                                                                       bottom: Color(bottomColor))
         }
     }
 
@@ -249,93 +253,27 @@ private struct CardPalette {
             shadow: Color(bottomColor.withAlphaComponent(0.4))
         )
     }
-}
 
-// MARK: - Professional Color Palettes
-private struct ProfessionalCardPalette {
-    let titleColor: Color
-    let secondaryColor: Color
-
-    static func scheme(for accent: Color) -> ProfessionalCardPalette {
-        let uiAccent = UIColor(accent)
-        var hue: CGFloat = 0
-        var saturation: CGFloat = 0
-        var brightness: CGFloat = 0
-        var alpha: CGFloat = 0
-
-        // Get HSB values, fallback to default if conversion fails
-        let hasHSB = uiAccent.getHue(&hue, saturation: &saturation, brightness: &brightness, alpha: &alpha)
-
-        if !hasHSB {
-            // Fallback to modern minimal scheme
-            return ProfessionalCardPalette(
-                titleColor: Color(red: 0.2, green: 0.2, blue: 0.2),
-                secondaryColor: Color(red: 0.5, green: 0.5, blue: 0.5)
+    private static func recommendedTextColors(for top: Color, middle: Color, bottom: Color) -> (Color, Color) {
+        let luminance = averageLuminance(colors: [top, middle, bottom])
+        if luminance > 0.6 {
+            return (
+                Color.black.opacity(0.9),
+                Color.black.opacity(0.68)
+            )
+        } else {
+            return (
+                Color.white,
+                Color.white.opacity(0.78)
             )
         }
-
-        // Choose palette based on hue ranges
-        let normalizedHue = hue * 360
-
-        switch normalizedHue {
-        case 0..<30, 330...360:
-            // Red/Pink range -> Elegant Rose
-            return elegantRose()
-        case 30..<80:
-            // Orange/Yellow range -> Warm Natural
-            return warmNatural()
-        case 80..<160:
-            // Green range -> Modern Minimal
-            return modernMinimal()
-        case 160..<250:
-            // Blue/Cyan range -> Business Classic
-            return businessClassic()
-        default:
-            // Purple range -> Tech Future
-            return techFuture()
-        }
     }
 
-    // MARK: - Professional Color Schemes
-
-    /// Business Classic: Professional blue-based palette
-    private static func businessClassic() -> ProfessionalCardPalette {
-        return ProfessionalCardPalette(
-            titleColor: Color(red: 1.0, green: 1.0, blue: 1.0), // Pure white
-            secondaryColor: Color(red: 0.85, green: 0.9, blue: 0.95) // Light blue-gray
-        )
-    }
-
-    /// Modern Minimal: Clean gray-based palette
-    private static func modernMinimal() -> ProfessionalCardPalette {
-        return ProfessionalCardPalette(
-            titleColor: Color(red: 0.2, green: 0.2, blue: 0.2), // Dark gray
-            secondaryColor: Color(red: 0.5, green: 0.5, blue: 0.5) // Medium gray
-        )
-    }
-
-    /// Warm Natural: Earth-tone palette
-    private static func warmNatural() -> ProfessionalCardPalette {
-        return ProfessionalCardPalette(
-            titleColor: Color(red: 0.3, green: 0.2, blue: 0.1), // Deep brown
-            secondaryColor: Color(red: 0.6, green: 0.45, blue: 0.3) // Medium brown
-        )
-    }
-
-    /// Tech Future: Futuristic purple-blue palette
-    private static func techFuture() -> ProfessionalCardPalette {
-        return ProfessionalCardPalette(
-            titleColor: Color(red: 0.95, green: 0.98, blue: 1.0), // Bright white
-            secondaryColor: Color(red: 0.7, green: 0.9, blue: 0.95) // Light cyan
-        )
-    }
-
-    /// Elegant Rose: Sophisticated pink-purple palette
-    private static func elegantRose() -> ProfessionalCardPalette {
-        return ProfessionalCardPalette(
-            titleColor: Color(red: 0.25, green: 0.1, blue: 0.3), // Deep purple
-            secondaryColor: Color(red: 0.5, green: 0.3, blue: 0.45) // Medium purple
-        )
+    private static func averageLuminance(colors: [Color]) -> CGFloat {
+        let luminances = colors.compactMap { UIColor($0).relativeLuminance }
+        guard !luminances.isEmpty else { return 0.5 }
+        let sum = luminances.reduce(0, +)
+        return sum / CGFloat(luminances.count)
     }
 }
 
@@ -372,6 +310,27 @@ private extension UIColor {
         let a = a1 + (a2 - a1) * fraction
 
         return UIColor(red: r, green: g, blue: b, alpha: a)
+    }
+}
+
+private extension UIColor {
+    var relativeLuminance: CGFloat? {
+        var red: CGFloat = 0
+        var green: CGFloat = 0
+        var blue: CGFloat = 0
+        var alpha: CGFloat = 0
+        guard getRed(&red, green: &green, blue: &blue, alpha: &alpha) else {
+            return nil
+        }
+
+        func adjusted(_ value: CGFloat) -> CGFloat {
+            value <= 0.03928 ? value / 12.92 : pow((value + 0.055) / 1.055, 2.4)
+        }
+
+        let r = adjusted(red)
+        let g = adjusted(green)
+        let b = adjusted(blue)
+        return 0.2126 * r + 0.7152 * g + 0.0722 * b
     }
 }
 
