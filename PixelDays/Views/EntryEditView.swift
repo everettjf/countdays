@@ -2,6 +2,8 @@ import SwiftUI
 
 struct EntryEditView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var draft: EntryDraft
     var isNew: Bool
     var onSave: (EntryDraft) -> Void
@@ -12,6 +14,12 @@ struct EntryEditView: View {
     @State private var showDeleteConfirmation = false
 
     private let colorPalette: [TrendingCardPalette] = TrendingCardPalettes.all
+    private var layout: EditLayout {
+        EditLayout(horizontalSizeClass: horizontalSizeClass, dynamicTypeSize: dynamicTypeSize)
+    }
+    private var colorGridColumns: [GridItem] {
+        Array(repeating: GridItem(.fixed(36), spacing: layout.colorGridSpacing), count: layout.colorColumnCount)
+    }
 
     init(draft: EntryDraft, isNew: Bool, onSave: @escaping (EntryDraft) -> Void, onDelete: (() -> Void)? = nil) {
         _draft = State(initialValue: draft)
@@ -62,7 +70,7 @@ struct EntryEditView: View {
                             .font(.subheadline.weight(.semibold))
                             .foregroundColor(.secondary)
 
-                        LazyVGrid(columns: Array(repeating: GridItem(.fixed(36), spacing: 12), count: 5), spacing: 12) {
+                        LazyVGrid(columns: colorGridColumns, spacing: layout.colorGridSpacing) {
                             ForEach(colorPalette) { palette in
                                 Circle()
                                     .fill(LinearGradient(
@@ -109,6 +117,7 @@ struct EntryEditView: View {
                 }
             }
             .formStyle(.grouped)
+            .modifier(CenteredFormModifier(layout: layout))
             .navigationTitle(isNew ? "New Entry" : "Edit Entry")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -190,5 +199,37 @@ private extension Binding where Value == String {
         }, set: { newValue in
             source.wrappedValue = newValue.isEmpty ? nil : newValue
         })
+    }
+}
+
+private struct EditLayout {
+    let contentWidth: CGFloat?
+    let horizontalPadding: CGFloat
+    let colorColumnCount: Int
+    let colorGridSpacing: CGFloat
+
+    init(horizontalSizeClass: UserInterfaceSizeClass?, dynamicTypeSize: DynamicTypeSize) {
+        let useWideLayout = horizontalSizeClass == .regular && !dynamicTypeSize.isAccessibilitySize
+        contentWidth = useWideLayout ? 620 : nil
+        horizontalPadding = useWideLayout ? 24 : 0
+        colorColumnCount = useWideLayout ? 7 : 5
+        colorGridSpacing = useWideLayout ? 14 : 12
+    }
+}
+
+private struct CenteredFormModifier: ViewModifier {
+    let layout: EditLayout
+
+    func body(content: Content) -> some View {
+        Group {
+            if let width = layout.contentWidth {
+                content
+                    .frame(maxWidth: width)
+                    .padding(.horizontal, layout.horizontalPadding)
+                    .frame(maxWidth: .infinity, alignment: .center)
+            } else {
+                content
+            }
+        }
     }
 }

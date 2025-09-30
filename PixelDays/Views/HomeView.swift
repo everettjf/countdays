@@ -3,6 +3,9 @@ import UniformTypeIdentifiers
 
 struct HomeView: View {
     @EnvironmentObject private var store: EntryStore
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Environment(\.verticalSizeClass) private var verticalSizeClass
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     @State private var filter: EntryStore.Filter = .all
     @State private var searchText: String = ""
@@ -22,7 +25,16 @@ struct HomeView: View {
     @State private var pastedJSON: String = ""
 
     private var entries: [Entry] { store.entries }
-    private let columns: [GridItem] = [GridItem(.adaptive(minimum: 300), spacing: 20)]
+    private var layout: LayoutMetrics {
+        LayoutMetrics(horizontalSizeClass: horizontalSizeClass,
+                      verticalSizeClass: verticalSizeClass,
+                      dynamicTypeSize: dynamicTypeSize)
+    }
+
+    private var gridColumns: [GridItem] {
+        [GridItem(.adaptive(minimum: layout.minColumnWidth, maximum: layout.maxColumnWidth),
+                  spacing: layout.gridSpacing)]
+    }
 
     var body: some View {
         NavigationStack {
@@ -60,49 +72,48 @@ struct HomeView: View {
     }
 
     private var header: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Picker("Filter", selection: $filter) {
-                ForEach(EntryStore.Filter.allCases) { filter in
-                    Text(filter.title).tag(filter)
+        contentContainer {
+            Group {
+                if layout.usesHorizontalHeader {
+                    HStack(alignment: .center, spacing: layout.horizontalHeaderSpacing) {
+                        if let maxWidth = layout.filterMaxWidth {
+                            filterPickerView
+                                .frame(maxWidth: maxWidth)
+                        } else {
+                            filterPickerView
+                        }
+                        searchFieldView
+                            .frame(maxWidth: .infinity)
+                    }
+                } else {
+                    VStack(alignment: .leading, spacing: layout.headerSpacing) {
+                        filterPickerView
+                            .frame(maxWidth: .infinity)
+                        searchFieldView
+                            .frame(maxWidth: .infinity)
+                    }
                 }
             }
-            .pickerStyle(.segmented)
-            .padding(.horizontal, 16)
-
-            HStack(spacing: 8) {
-                Image(systemName: "magnifyingglass")
-                    .foregroundStyle(Color(.secondaryLabel))
-                TextField("Search", text: $searchText)
-                    .textInputAutocapitalization(.words)
-                    .disableAutocorrection(true)
-                    .foregroundStyle(Color(.label))
-            }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 10)
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .strokeBorder(Color(.separator), lineWidth: 1)
-                    .background(RoundedRectangle(cornerRadius: 12).fill(Color(UIColor.secondarySystemBackground)))
-            )
-            .padding(.horizontal, 16)
         }
-        .padding(.top, 0)
+        .padding(.top, layout.headerTopPadding)
+        .padding(.bottom, layout.headerBottomPadding)
     }
 
     private var entriesGrid: some View {
-        LazyVGrid(columns: columns, alignment: .leading, spacing: 20) {
-            if entries.isEmpty {
-                emptyState
-                    .gridCellColumns(columns.count)
-            } else {
-                ForEach(entries) { entry in
-                    entryItem(for: entry)
+        contentContainer {
+            LazyVGrid(columns: gridColumns, alignment: .leading, spacing: layout.gridSpacing) {
+                if entries.isEmpty {
+                    emptyState
+                        .gridCellColumns(gridColumns.count)
+                } else {
+                    ForEach(entries) { entry in
+                        entryItem(for: entry)
+                    }
                 }
             }
+            .padding(.top, layout.gridTopPadding)
+            .padding(.bottom, layout.gridBottomPadding)
         }
-        .padding(.horizontal, 16)
-        .padding(.top, 12)
-        .padding(.bottom, 72)
     }
 
     private var emptyState: some View {
@@ -114,15 +125,14 @@ struct HomeView: View {
                 .font(.body)
                 .foregroundStyle(Color(.secondaryLabel))
         }
-        .padding(20)
+        .padding(layout.emptyStatePadding)
+        .padding(.top, layout.emptyStateTopSpacing)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
             RoundedRectangle(cornerRadius: 16)
                 .stroke(Color(.separator), style: StrokeStyle(lineWidth: 1, dash: [6]))
                 .background(RoundedRectangle(cornerRadius: 16).fill(Color(UIColor.systemBackground)))
         )
-        .padding(.horizontal, 16)
-        .padding(.top, 40)
     }
 
     private var mainContent: some View {
@@ -130,10 +140,10 @@ struct HomeView: View {
             Color(UIColor.systemGroupedBackground).ignoresSafeArea()
             VStack(spacing: 0) {
                 header
-                    .padding(.top, 12)
                 ScrollView {
                     entriesGrid
                 }
+                .scrollIndicators(.hidden)
             }
         }
     }
@@ -357,5 +367,93 @@ struct HomeView: View {
         if draft == nil {
             editingEntry = nil
         }
+    }
+}
+
+// MARK: - Layout Helpers
+
+private extension HomeView {
+    func contentContainer<Content: View>(@ViewBuilder content: () -> Content) -> some View {
+        Group {
+            if let width = layout.contentWidth {
+                content()
+                    .frame(maxWidth: width, alignment: .leading)
+            } else {
+                content()
+            }
+        }
+        .padding(.horizontal, layout.horizontalPadding)
+        .frame(maxWidth: .infinity, alignment: layout.contentAlignment)
+    }
+
+    var filterPickerView: some View {
+        Picker("Filter", selection: $filter) {
+            ForEach(EntryStore.Filter.allCases) { filter in
+                Text(filter.title).tag(filter)
+            }
+        }
+        .pickerStyle(.segmented)
+    }
+
+    var searchFieldView: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "magnifyingglass")
+                .foregroundStyle(Color(.secondaryLabel))
+            TextField("Search", text: $searchText)
+                .textInputAutocapitalization(.words)
+                .disableAutocorrection(true)
+                .foregroundStyle(Color(.label))
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .strokeBorder(Color(.separator), lineWidth: 1)
+                .background(RoundedRectangle(cornerRadius: 12).fill(Color(UIColor.secondarySystemBackground)))
+        )
+    }
+}
+
+private struct LayoutMetrics {
+    let contentWidth: CGFloat?
+    let horizontalPadding: CGFloat
+    let usesHorizontalHeader: Bool
+    let headerSpacing: CGFloat
+    let horizontalHeaderSpacing: CGFloat
+    let filterMaxWidth: CGFloat?
+    let headerTopPadding: CGFloat
+    let headerBottomPadding: CGFloat
+    let gridSpacing: CGFloat
+    let gridTopPadding: CGFloat
+    let gridBottomPadding: CGFloat
+    let emptyStatePadding: CGFloat
+    let emptyStateTopSpacing: CGFloat
+    let minColumnWidth: CGFloat
+    let maxColumnWidth: CGFloat
+    let contentAlignment: Alignment
+
+    init(horizontalSizeClass: UserInterfaceSizeClass?,
+         verticalSizeClass: UserInterfaceSizeClass?,
+         dynamicTypeSize: DynamicTypeSize) {
+        let prefersWideLayout = horizontalSizeClass == .regular && verticalSizeClass != .compact
+        let isAccessibility = dynamicTypeSize.isAccessibilitySize
+        let useWide = prefersWideLayout && !isAccessibility
+
+        usesHorizontalHeader = useWide
+        contentWidth = useWide ? 840 : nil
+        horizontalPadding = useWide ? 32 : 16
+        headerSpacing = useWide ? 16 : 10
+        horizontalHeaderSpacing = useWide ? 20 : 12
+        filterMaxWidth = useWide ? 340 : nil
+        headerTopPadding = useWide ? 28 : 12
+        headerBottomPadding = useWide ? 8 : 12
+        gridSpacing = useWide ? 28 : 20
+        gridTopPadding = useWide ? 8 : 12
+        gridBottomPadding = useWide ? 140 : 84
+        emptyStatePadding = useWide ? 28 : 20
+        emptyStateTopSpacing = useWide ? 48 : 32
+        minColumnWidth = useWide ? 320 : 260
+        maxColumnWidth = useWide ? 420 : 360
+        contentAlignment = useWide ? .center : .leading
     }
 }

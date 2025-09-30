@@ -2,9 +2,15 @@ import SwiftUI
 
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     let onImport: () -> Void
     let onImportText: () -> Void
     let onExport: () -> Void
+
+    private var layout: SettingsLayout {
+        SettingsLayout(horizontalSizeClass: horizontalSizeClass, dynamicTypeSize: dynamicTypeSize)
+    }
 
     var body: some View {
         NavigationStack {
@@ -59,11 +65,40 @@ struct SettingsView: View {
                     Button("Close") { dismiss() }
                 }
             }
+            .modifier(CenteredListModifier(layout: layout))
         }
     }
 
     private func dismissAnd(_ action: @escaping () -> Void) {
         dismiss()
         DispatchQueue.main.async { action() }
+    }
+}
+
+private struct SettingsLayout {
+    let contentWidth: CGFloat?
+    let horizontalPadding: CGFloat
+
+    init(horizontalSizeClass: UserInterfaceSizeClass?, dynamicTypeSize: DynamicTypeSize) {
+        let useWideLayout = horizontalSizeClass == .regular && !dynamicTypeSize.isAccessibilitySize
+        contentWidth = useWideLayout ? 520 : nil
+        horizontalPadding = useWideLayout ? 24 : 0
+    }
+}
+
+private struct CenteredListModifier: ViewModifier {
+    let layout: SettingsLayout
+
+    func body(content: Content) -> some View {
+        Group {
+            if let width = layout.contentWidth {
+                content
+                    .frame(maxWidth: width)
+                    .padding(.horizontal, layout.horizontalPadding)
+                    .frame(maxWidth: .infinity, alignment: .center)
+            } else {
+                content
+            }
+        }
     }
 }
