@@ -329,7 +329,7 @@ struct HomeView: View {
                 delete(entry: entry)
             }
         }
-        .presentationDetents([.large, .fraction(0.9)])
+        .presentationDetents([.large])
     }
 
     private func configureInitialFilter() {
