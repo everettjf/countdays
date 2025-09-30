@@ -7,38 +7,53 @@ struct PixelTag: View {
     var body: some View {
         Text(text.uppercased())
             .font(.system(size: 11, weight: .black, design: .monospaced))
-            .kerning(1.5)
-            .padding(.horizontal, 10)
-            .padding(.vertical, 5)
-            .foregroundColor(Color.black)
+            .kerning(1.3)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 6)
+            .foregroundColor(textColor)
             .background(tagBackground)
     }
 
     private var tagBackground: some View {
-        RoundedRectangle(cornerRadius: 6, style: .continuous)
-            .fill(Color.white.opacity(0.95))
+        Capsule(style: .continuous)
+            .fill(backgroundGradient)
             .overlay(
-                LinearGradient(colors: [tint.opacity(0.22), tint.opacity(0.08)], startPoint: .topLeading, endPoint: .bottomTrailing)
-                    .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+                Capsule(style: .continuous)
+                    .stroke(borderGradient, lineWidth: 1.1)
             )
             .overlay(
-                RoundedRectangle(cornerRadius: 6, style: .continuous)
-                    .stroke(tint.opacity(0.55), lineWidth: 1.5)
+                Capsule(style: .continuous)
+                    .stroke(Color.white.opacity(0.5), lineWidth: 0.8)
+                    .blur(radius: 0.8)
+                    .opacity(0.6)
             )
-            .overlay(alignment: .topLeading) { pixelSquare(x: -3, y: -3) }
-            .overlay(alignment: .bottomTrailing) { pixelSquare(x: 3, y: 3) }
-            .shadow(color: tint.opacity(0.15), radius: 6, x: 0, y: 3)
+            .shadow(color: tint.opacity(0.12), radius: 8, x: 0, y: 3)
     }
 
-    private func pixelSquare(x: CGFloat, y: CGFloat) -> some View {
-        RoundedRectangle(cornerRadius: 2, style: .continuous)
-            .fill(tint)
-            .frame(width: 8, height: 8)
-            .overlay(
-                RoundedRectangle(cornerRadius: 2, style: .continuous)
-                    .stroke(Color.white.opacity(0.7), lineWidth: 0.8)
-            )
-            .offset(x: x, y: y)
+    private var textColor: Color {
+        Color.black.opacity(0.8)
+    }
+
+    private var backgroundGradient: LinearGradient {
+        LinearGradient(
+            colors: [
+                Color.white.opacity(0.92),
+                tint.opacity(0.15)
+            ],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+    }
+
+    private var borderGradient: LinearGradient {
+        LinearGradient(
+            colors: [
+                tint.opacity(0.5),
+                tint.opacity(0.2)
+            ],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
     }
 }
 
