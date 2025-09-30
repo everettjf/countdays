@@ -27,7 +27,7 @@ struct HomeView: View {
     var body: some View {
         NavigationStack {
             mainContent
-                .navigationTitle("Pixel Days Count")
+                .navigationTitle("CountMyDays")
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar { toolbarContent() }
         }
