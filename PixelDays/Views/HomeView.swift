@@ -31,7 +31,7 @@ struct HomeView: View {
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar { toolbarContent() }
         }
-        .fullScreenCover(isPresented: $showSettings, content: settingsSheet)
+        .sheet(isPresented: $showSettings, content: settingsSheet)
         .fileImporter(isPresented: $showImporter, allowedContentTypes: [.json], onCompletion: handleFileImport)
         .sheet(isPresented: $showImportSummary, content: importSummarySheet)
         .sheet(isPresented: $showShareSheet, onDismiss: { exportedURL = nil }, content: shareSheet)
@@ -269,6 +269,8 @@ struct HomeView: View {
         },
                      onImportText: { showTextImporter() },
                      onExport: exportEntries)
+        .presentationDetents([.large])
+        .presentationDragIndicator(.visible)
     }
 
     private func handleFileImport(_ result: Result<URL, Error>) {
