@@ -38,7 +38,7 @@ struct PixelNumberView: View {
                     .blur(radius: 1)
                     .opacity(0.6)
             )
-            .shadow(color: color.opacity(0.25), radius: 12, x: 0, y: 6)
+            .shadow(color: color.opacity(0.22), radius: 12, x: 0, y: 6)
     }
 
     private var backgroundGradient: LinearGradient {
@@ -72,7 +72,7 @@ struct PixelNumberView: View {
     }
 
     private var highlightColor: Color {
-        Color.white.opacity(colorScheme == .dark ? 0.35 : 0.45)
+        color.opacity(colorScheme == .dark ? 0.45 : 0.35)
     }
 }
 

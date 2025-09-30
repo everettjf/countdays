@@ -23,22 +23,22 @@ struct PixelTag: View {
             )
             .overlay(
                 Capsule(style: .continuous)
-                    .stroke(Color.white.opacity(0.5), lineWidth: 0.8)
-                    .blur(radius: 0.8)
-                    .opacity(0.6)
+                    .stroke(highlightGradient, lineWidth: 0.9)
+                    .blur(radius: 0.6)
+                    .opacity(0.55)
             )
             .shadow(color: tint.opacity(0.12), radius: 8, x: 0, y: 3)
     }
 
     private var textColor: Color {
-        Color.black.opacity(0.8)
+        Color.black.opacity(0.82)
     }
 
     private var backgroundGradient: LinearGradient {
         LinearGradient(
             colors: [
-                Color.white.opacity(0.92),
-                tint.opacity(0.15)
+                tint.opacity(0.28),
+                tint.opacity(0.1)
             ],
             startPoint: .topLeading,
             endPoint: .bottomTrailing
@@ -48,8 +48,19 @@ struct PixelTag: View {
     private var borderGradient: LinearGradient {
         LinearGradient(
             colors: [
-                tint.opacity(0.5),
-                tint.opacity(0.2)
+                tint.opacity(0.55),
+                tint.opacity(0.25)
+            ],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+    }
+
+    private var highlightGradient: LinearGradient {
+        LinearGradient(
+            colors: [
+                tint.opacity(0.4),
+                tint.opacity(0.18)
             ],
             startPoint: .topLeading,
             endPoint: .bottomTrailing
