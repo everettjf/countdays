@@ -10,7 +10,7 @@ struct PixelTag: View {
             .kerning(1.5)
             .padding(.horizontal, 10)
             .padding(.vertical, 5)
-            .foregroundColor(Color(.label))
+            .foregroundColor(Color.black)
             .background(tagBackground)
     }
 

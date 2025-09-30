@@ -11,10 +11,7 @@ struct EntryEditView: View {
     @FocusState private var focusTitle: Bool
     @State private var showDeleteConfirmation = false
 
-    private let colorPalette: [String] = [
-        "#6C8BD6", "#00E5FF", "#00E0A4", "#FF2D55", "#FFD966",
-        "#F35F5F", "#8E67FF", "#2EC4B6", "#FB6F92", "#1B998B"
-    ]
+    private let colorPalette: [TrendingCardPalette] = TrendingCardPalettes.all
 
     init(draft: EntryDraft, isNew: Bool, onSave: @escaping (EntryDraft) -> Void, onDelete: (() -> Void)? = nil) {
         _draft = State(initialValue: draft)
@@ -66,15 +63,24 @@ struct EntryEditView: View {
                             .foregroundColor(.secondary)
 
                         LazyVGrid(columns: Array(repeating: GridItem(.fixed(36), spacing: 12), count: 5), spacing: 12) {
-                            ForEach(colorPalette, id: \.self) { hex in
+                            ForEach(colorPalette) { palette in
                                 Circle()
-                                    .fill(Color(hex: hex))
+                                    .fill(LinearGradient(
+                                        colors: palette.colors.map { Color(hex: $0) },
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    ))
                                     .frame(width: 36, height: 36)
                                     .overlay(
                                         Circle()
-                                            .stroke(Color.white.opacity(draft.colorHex == hex ? 0.9 : 0.2), lineWidth: draft.colorHex == hex ? 3 : 1)
+                                            .stroke(
+                                                Color.white.opacity(isSelected(palette) ? 0.9 : 0.2),
+                                                lineWidth: isSelected(palette) ? 3 : 1
+                                            )
                                     )
-                                    .onTapGesture { draft.colorHex = hex }
+                                    .onTapGesture {
+                                        draft.colorHex = palette.primaryHex
+                                    }
                             }
                         }
 
@@ -142,6 +148,10 @@ struct EntryEditView: View {
                 draft.startDate = nil
             }
         }
+    }
+
+    private func isSelected(_ palette: TrendingCardPalette) -> Bool {
+        TrendingCardPalettes.normalize(draft.colorHex) == TrendingCardPalettes.normalize(palette.primaryHex)
     }
 
     private var isFormValid: Bool {

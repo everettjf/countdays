@@ -42,35 +42,23 @@ struct PixelNumberView: View {
     }
 
     private var backgroundColor: Color {
-        if colorScheme == .dark {
-            return Color.black.opacity(0.85)
-        } else {
-            return Color.white.opacity(0.98)
-        }
+        // Fixed professional dark background for consistent look
+        Color.black.opacity(0.85)
     }
 
     private var gradientColors: [Color] {
-        if colorScheme == .dark {
-            return [color.opacity(0.6), color.opacity(0.3)]
-        } else {
-            return [color.opacity(0.35), color.opacity(0.15)]
-        }
+        // Fixed professional gradient - consistent regardless of system theme
+        [color.opacity(0.6), color.opacity(0.3)]
     }
 
     private var textColor: Color {
-        if colorScheme == .dark {
-            return Color.white
-        } else {
-            return Color.black
-        }
+        // Fixed professional color - always use high contrast
+        Color.white
     }
 
     private var secondaryTextColor: Color {
-        if colorScheme == .dark {
-            return Color.white.opacity(0.8)
-        } else {
-            return Color.black.opacity(0.7)
-        }
+        // Fixed professional color - always use consistent secondary
+        Color.white.opacity(0.85)
     }
 
     private func pixelCorner(x: CGFloat, y: CGFloat) -> some View {

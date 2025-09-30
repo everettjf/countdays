@@ -19,7 +19,7 @@ struct EntryDraft: Identifiable, Equatable {
          startDate: Date? = nil,
          targetDate: Date? = nil,
          timezone: TimeZone = .current,
-         colorHex: String = "#6C8BD6",
+         colorHex: String = TrendingCardPalettes.defaultHex,
          iconEmoji: String? = nil,
          notes: String? = nil,
          isPinned: Bool = false,
@@ -67,7 +67,7 @@ extension EntryDraft {
         let tz = timezone
         entry.startDate = entryType == .countUp ? startDate.map { DayCounter.startOfDay($0, in: tz) } : nil
         entry.targetDate = entryType == .countDown ? targetDate.map { DayCounter.startOfDay($0, in: tz) } : nil
-        entry.colorHex = colorHex.isEmpty ? "#6C8BD6" : colorHex
+        entry.colorHex = colorHex.isEmpty ? TrendingCardPalettes.defaultHex : colorHex
         entry.iconEmoji = iconEmoji?.isEmpty == true ? nil : iconEmoji
         entry.notes = notes?.isEmpty == true ? nil : notes
         entry.isPinned = isPinned && !isArchived

@@ -21,7 +21,7 @@ struct Entry: Identifiable, Codable, Equatable {
          startDate: Date? = nil,
          targetDate: Date? = nil,
          timezoneID: String = TimeZone.current.identifier,
-         colorHex: String = "#6C8BD6",
+         colorHex: String = TrendingCardPalettes.defaultHex,
          iconEmoji: String? = nil,
          notes: String? = nil,
          isPinned: Bool = false,
@@ -59,7 +59,7 @@ struct Entry: Identifiable, Codable, Equatable {
             createdAt = now
         }
         updatedAt = now
-        if colorHex.isEmpty { colorHex = "#6C8BD6" }
+        if colorHex.isEmpty { colorHex = TrendingCardPalettes.defaultHex }
         if timezoneID.isEmpty { timezoneID = TimeZone.current.identifier }
     }
 }

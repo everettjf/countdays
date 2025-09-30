@@ -10,11 +10,13 @@ struct EntryCardView: View {
     private let timer = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
 
     private var accent: Color { Color(hex: snapshot.colorHex) }
+
+    // Fixed professional colors - not affected by system color scheme
     private var titleColor: Color {
-        colorScheme == .dark ? Color.white : Color.black
+        professionalPalette.titleColor
     }
     private var secondaryColor: Color {
-        colorScheme == .dark ? Color.white.opacity(0.8) : Color.black.opacity(0.7)
+        professionalPalette.secondaryColor
     }
 
     private var dateLine: String {
@@ -136,7 +138,11 @@ struct EntryCardView: View {
     }
 
     private var palette: CardPalette {
-        CardPalette(accent: accent, colorScheme: colorScheme)
+        CardPalette(accent: accent, accentHex: snapshot.colorHex, colorScheme: colorScheme)
+    }
+
+    private var professionalPalette: ProfessionalCardPalette {
+        ProfessionalCardPalette.scheme(for: accent)
     }
 }
 
@@ -152,7 +158,22 @@ private struct CardPalette {
     let cornerStroke: Color
     let shadow: Color
 
-    init(accent: Color, colorScheme: ColorScheme) {
+    init(accent: Color, accentHex: String, colorScheme: ColorScheme) {
+        if let trending = TrendingCardPalettes.palette(for: accentHex) {
+            let components = CardPalette.trendingComponents(from: trending)
+            top = components.top
+            middle = components.middle
+            bottom = components.bottom
+            glowStart = components.glowStart
+            glowEnd = components.glowEnd
+            innerStroke = components.innerStroke
+            frame = components.frame
+            cornerFill = components.cornerFill
+            cornerStroke = components.cornerStroke
+            shadow = components.shadow
+            return
+        }
+
         let uiAccent = UIColor(accent)
 
         func resolved(_ candidate: UIColor?) -> UIColor { candidate ?? uiAccent }
@@ -203,6 +224,135 @@ private struct CardPalette {
             shadow = Color(shadowColor.withAlphaComponent(0.3))
         }
     }
+
+    private static func trendingComponents(from palette: TrendingCardPalette) -> (top: Color,
+                                                                                middle: Color,
+                                                                                bottom: Color,
+                                                                                glowStart: Color,
+                                                                                glowEnd: Color,
+                                                                                innerStroke: Color,
+                                                                                frame: Color,
+                                                                                cornerFill: Color,
+                                                                                cornerStroke: Color,
+                                                                                shadow: Color) {
+        func uiColor(for hex: String) -> UIColor {
+            UIColor(Color(hex: hex))
+        }
+
+        let colors = palette.colors.map(uiColor(for:))
+        let fallback = UIColor(Color(hex: "#606C38"))
+
+        func paletteColor(at index: Int, fallback fallbackColor: UIColor) -> UIColor {
+            colors.indices.contains(index) ? colors[index] : fallbackColor
+        }
+
+        let topColor = paletteColor(at: 0, fallback: fallback)
+        let midColor = paletteColor(at: 2, fallback: topColor)
+        let bottomColor = colors.last ?? midColor
+        let glowStartColor = paletteColor(at: 1, fallback: topColor)
+        let glowEndColor = paletteColor(at: 3, fallback: bottomColor)
+
+        return (
+            top: Color(topColor),
+            middle: Color(midColor),
+            bottom: Color(bottomColor),
+            glowStart: Color(glowStartColor.withAlphaComponent(0.55)),
+            glowEnd: Color(glowEndColor.withAlphaComponent(0.35)),
+            innerStroke: Color(glowStartColor.withAlphaComponent(0.65)),
+            frame: Color(glowEndColor.withAlphaComponent(0.7)),
+            cornerFill: Color(midColor),
+            cornerStroke: Color(topColor.withAlphaComponent(0.75)),
+            shadow: Color(bottomColor.withAlphaComponent(0.4))
+        )
+    }
+}
+
+// MARK: - Professional Color Palettes
+private struct ProfessionalCardPalette {
+    let titleColor: Color
+    let secondaryColor: Color
+
+    static func scheme(for accent: Color) -> ProfessionalCardPalette {
+        let uiAccent = UIColor(accent)
+        var hue: CGFloat = 0
+        var saturation: CGFloat = 0
+        var brightness: CGFloat = 0
+        var alpha: CGFloat = 0
+
+        // Get HSB values, fallback to default if conversion fails
+        let hasHSB = uiAccent.getHue(&hue, saturation: &saturation, brightness: &brightness, alpha: &alpha)
+
+        if !hasHSB {
+            // Fallback to modern minimal scheme
+            return ProfessionalCardPalette(
+                titleColor: Color(red: 0.2, green: 0.2, blue: 0.2),
+                secondaryColor: Color(red: 0.5, green: 0.5, blue: 0.5)
+            )
+        }
+
+        // Choose palette based on hue ranges
+        let normalizedHue = hue * 360
+
+        switch normalizedHue {
+        case 0..<30, 330...360:
+            // Red/Pink range -> Elegant Rose
+            return elegantRose()
+        case 30..<80:
+            // Orange/Yellow range -> Warm Natural
+            return warmNatural()
+        case 80..<160:
+            // Green range -> Modern Minimal
+            return modernMinimal()
+        case 160..<250:
+            // Blue/Cyan range -> Business Classic
+            return businessClassic()
+        default:
+            // Purple range -> Tech Future
+            return techFuture()
+        }
+    }
+
+    // MARK: - Professional Color Schemes
+
+    /// Business Classic: Professional blue-based palette
+    private static func businessClassic() -> ProfessionalCardPalette {
+        return ProfessionalCardPalette(
+            titleColor: Color(red: 1.0, green: 1.0, blue: 1.0), // Pure white
+            secondaryColor: Color(red: 0.85, green: 0.9, blue: 0.95) // Light blue-gray
+        )
+    }
+
+    /// Modern Minimal: Clean gray-based palette
+    private static func modernMinimal() -> ProfessionalCardPalette {
+        return ProfessionalCardPalette(
+            titleColor: Color(red: 0.2, green: 0.2, blue: 0.2), // Dark gray
+            secondaryColor: Color(red: 0.5, green: 0.5, blue: 0.5) // Medium gray
+        )
+    }
+
+    /// Warm Natural: Earth-tone palette
+    private static func warmNatural() -> ProfessionalCardPalette {
+        return ProfessionalCardPalette(
+            titleColor: Color(red: 0.3, green: 0.2, blue: 0.1), // Deep brown
+            secondaryColor: Color(red: 0.6, green: 0.45, blue: 0.3) // Medium brown
+        )
+    }
+
+    /// Tech Future: Futuristic purple-blue palette
+    private static func techFuture() -> ProfessionalCardPalette {
+        return ProfessionalCardPalette(
+            titleColor: Color(red: 0.95, green: 0.98, blue: 1.0), // Bright white
+            secondaryColor: Color(red: 0.7, green: 0.9, blue: 0.95) // Light cyan
+        )
+    }
+
+    /// Elegant Rose: Sophisticated pink-purple palette
+    private static func elegantRose() -> ProfessionalCardPalette {
+        return ProfessionalCardPalette(
+            titleColor: Color(red: 0.25, green: 0.1, blue: 0.3), // Deep purple
+            secondaryColor: Color(red: 0.5, green: 0.3, blue: 0.45) // Medium purple
+        )
+    }
 }
 
 private extension UIColor {
@@ -249,7 +399,7 @@ private extension UIColor {
         startDate: nil,
         targetDate: Date().addingTimeInterval(86400 * 32),
         timezone: .current,
-        colorHex: "#FF8A65",
+        colorHex: TrendingCardPalettes.defaultHex,
         iconEmoji: "🌞",
         notes: "Prep campaign materials and shoot bright imagery.",
         isPinned: true,
