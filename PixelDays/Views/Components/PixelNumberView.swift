@@ -20,56 +20,59 @@ struct PixelNumberView: View {
                 .minimumScaleFactor(0.7)
                 .foregroundColor(secondaryTextColor)
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
+        .padding(.horizontal, 18)
+        .padding(.vertical, 10)
         .background(background)
     }
 
     private var background: some View {
-        RoundedRectangle(cornerRadius: 6, style: .continuous)
-            .fill(backgroundColor)
+        RoundedRectangle(cornerRadius: 14, style: .continuous)
+            .fill(backgroundGradient)
             .overlay(
-                LinearGradient(colors: gradientColors, startPoint: .topLeading, endPoint: .bottomTrailing)
-                    .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .stroke(borderGradient, lineWidth: 1.4)
             )
             .overlay(
-                RoundedRectangle(cornerRadius: 6, style: .continuous)
-                    .stroke(color.opacity(0.65), lineWidth: 1.5)
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .stroke(highlightColor, lineWidth: 1)
+                    .blur(radius: 1)
+                    .opacity(0.6)
             )
-            .overlay(alignment: .topLeading) { pixelCorner(x: -4, y: -4) }
-            .overlay(alignment: .bottomTrailing) { pixelCorner(x: 4, y: 4) }
-            .shadow(color: color.opacity(0.25), radius: 6, x: 0, y: 3)
+            .shadow(color: color.opacity(0.25), radius: 12, x: 0, y: 6)
     }
 
-    private var backgroundColor: Color {
-        // Fixed professional dark background for consistent look
-        Color.black.opacity(0.85)
+    private var backgroundGradient: LinearGradient {
+        LinearGradient(
+            colors: [
+                color.opacity(colorScheme == .dark ? 0.45 : 0.35),
+                color.opacity(colorScheme == .dark ? 0.25 : 0.2)
+            ],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
     }
 
-    private var gradientColors: [Color] {
-        // Fixed professional gradient - consistent regardless of system theme
-        [color.opacity(0.6), color.opacity(0.3)]
+    private var borderGradient: LinearGradient {
+        LinearGradient(
+            colors: [
+                color.opacity(0.65),
+                color.opacity(0.3)
+            ],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
     }
 
     private var textColor: Color {
-        // Fixed professional color - always use high contrast
         Color.white
     }
 
     private var secondaryTextColor: Color {
-        // Fixed professional color - always use consistent secondary
-        Color.white.opacity(0.85)
+        Color.white.opacity(0.75)
     }
 
-    private func pixelCorner(x: CGFloat, y: CGFloat) -> some View {
-        Rectangle()
-            .fill(color)
-            .frame(width: 8, height: 8)
-            .overlay(
-                Rectangle()
-                    .stroke(Color.white.opacity(0.85), lineWidth: 1)
-            )
-            .offset(x: x, y: y)
+    private var highlightColor: Color {
+        Color.white.opacity(colorScheme == .dark ? 0.35 : 0.45)
     }
 }
 
