@@ -40,7 +40,7 @@ final class EntryStore: ObservableObject {
 
     init(fileManager: FileManager = .default) {
         let folder = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first ?? FileManager.default.temporaryDirectory
-        let directory = folder.appendingPathComponent("PixelDays", isDirectory: true)
+        let directory = folder.appendingPathComponent("CountMyDays", isDirectory: true)
         if !fileManager.fileExists(atPath: directory.path) {
             try? fileManager.createDirectory(at: directory, withIntermediateDirectories: true)
         }

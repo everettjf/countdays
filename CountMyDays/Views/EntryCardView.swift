@@ -31,7 +31,7 @@ struct EntryCardView: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .top, spacing: 14) {
                 VStack(alignment: .leading, spacing: 10) {
-                    PixelTag(text: snapshot.entryType.label,
+                    CardTypeTag(text: snapshot.entryType.label,
                              tint: accent,
                              textColorOverride: palette.primaryTextColor)
                     Text(snapshot.title)
@@ -50,7 +50,7 @@ struct EntryCardView: View {
                             .font(.system(size: 32))
                             .shadow(color: accent.opacity(0.3), radius: 0, x: 1, y: 1)
                     }
-                    PixelNumberView(value: days, label: "Days", color: accent)
+                    CardNumberView(value: days, label: "Days", color: accent)
                 }
             }
             if let notes = snapshot.notes, !notes.isEmpty {

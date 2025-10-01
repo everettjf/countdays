@@ -15,7 +15,7 @@ struct TextImportSheet: View {
     var body: some View {
         NavigationStack {
             VStack(alignment: .leading, spacing: 16) {
-                Text("Paste your JSON below. Make sure it follows the PixelDays schema with { \"version\": 1, \"entries\": [...] }.")
+                Text("Paste your JSON below. Make sure it follows the CountMyDays schema with { \"version\": 1, \"entries\": [...] }.")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
 

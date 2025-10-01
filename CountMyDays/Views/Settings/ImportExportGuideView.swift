@@ -13,7 +13,7 @@ struct ImportExportGuideView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
                 sectionHeader(title: "Import JSON", systemImage: "tray.and.arrow.down")
-                Text("PixelDays accepts JSON files that follow the v1 schema. Each entry can be a count-up or count-down with its own timezone.")
+                Text("CountMyDays accepts JSON files that follow the v1 schema. Each entry can be a count-up or count-down with its own timezone.")
                     .foregroundStyle(.secondary)
 
                 if let sampleURL {

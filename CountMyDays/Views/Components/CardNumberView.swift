@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct PixelNumberView: View {
+struct CardNumberView: View {
     let value: Int
     var label: String = "Days"
     var color: Color = Color(hex: "#00E0A4")
@@ -77,7 +77,7 @@ struct PixelNumberView: View {
 }
 
 #Preview(traits: .sizeThatFitsLayout) {
-    PixelNumberView(value: 421)
+    CardNumberView(value: 421)
         .padding()
         .background(Color(UIColor.systemGroupedBackground))
         }

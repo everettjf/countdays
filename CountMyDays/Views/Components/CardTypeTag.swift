@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct PixelTag: View {
+struct CardTypeTag: View {
     let text: String
     var tint: Color = Color(hex: "#00E5FF")
     var textColorOverride: Color?
@@ -32,7 +32,7 @@ struct PixelTag: View {
     }
 
     private var textColor: Color {
-        textColorOverride ?? PixelTag.recommendedTextColor(for: [topTint, midTint, baseTint])
+        textColorOverride ?? CardTypeTag.recommendedTextColor(for: [topTint, midTint, baseTint])
     }
 
     private var backgroundGradient: LinearGradient {
@@ -111,7 +111,7 @@ private extension UIColor {
 }
 
 #Preview(traits: .sizeThatFitsLayout) {
-    PixelTag(text: "Cumulative")
+    CardTypeTag(text: "Cumulative")
         .padding()
         .background(Color(UIColor.systemGroupedBackground))
         }

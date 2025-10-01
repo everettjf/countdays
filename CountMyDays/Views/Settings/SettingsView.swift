@@ -68,7 +68,7 @@ struct SettingsView: View {
 
                 Section("About") {
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("PixelDays")
+                        Text("CountMyDays")
                             .font(.headline)
                         Text("A pixel-styled day counter for the moments that matter.")
                             .font(.footnote)

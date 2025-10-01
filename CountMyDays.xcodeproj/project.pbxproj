@@ -7,26 +7,26 @@
 	objects = {
 
 /* Begin PBXFileReference section */
-		5A0DE4562E810DC400E2370A /* PixelDays.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PixelDays.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		5A0DE4562E810DC400E2370A /* CountMyDays.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CountMyDays.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		5A0DE4632E810DC500E2370A /* Exceptions for "PixelDays" folder in "PixelDays" target */ = {
+		5A0DE4632E810DC500E2370A /* Exceptions for "CountMyDays" folder in "CountMyDays" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
 			);
-			target = 5A0DE4552E810DC400E2370A /* PixelDays */;
+			target = 5A0DE4552E810DC400E2370A /* CountMyDays */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		5A0DE4582E810DC400E2370A /* PixelDays */ = {
+		5A0DE4582E810DC400E2370A /* CountMyDays */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				5A0DE4632E810DC500E2370A /* Exceptions for "PixelDays" folder in "PixelDays" target */,
+				5A0DE4632E810DC500E2370A /* Exceptions for "CountMyDays" folder in "CountMyDays" target */,
 			);
-			path = PixelDays;
+			path = CountMyDays;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -45,7 +45,7 @@
 		5A0DE44D2E810DC400E2370A = {
 			isa = PBXGroup;
 			children = (
-				5A0DE4582E810DC400E2370A /* PixelDays */,
+				5A0DE4582E810DC400E2370A /* CountMyDays */,
 				5A0DE4572E810DC400E2370A /* Products */,
 			);
 			sourceTree = "<group>";
@@ -53,7 +53,7 @@
 		5A0DE4572E810DC400E2370A /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				5A0DE4562E810DC400E2370A /* PixelDays.app */,
+				5A0DE4562E810DC400E2370A /* CountMyDays.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -61,9 +61,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		5A0DE4552E810DC400E2370A /* PixelDays */ = {
+		5A0DE4552E810DC400E2370A /* CountMyDays */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 5A0DE4642E810DC500E2370A /* Build configuration list for PBXNativeTarget "PixelDays" */;
+			buildConfigurationList = 5A0DE4642E810DC500E2370A /* Build configuration list for PBXNativeTarget "CountMyDays" */;
 			buildPhases = (
 				5A0DE4522E810DC400E2370A /* Sources */,
 				5A0DE4532E810DC400E2370A /* Frameworks */,
@@ -74,13 +74,13 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				5A0DE4582E810DC400E2370A /* PixelDays */,
+				5A0DE4582E810DC400E2370A /* CountMyDays */,
 			);
-			name = PixelDays;
+			name = CountMyDays;
 			packageProductDependencies = (
 			);
 			productName = PixelDays;
-			productReference = 5A0DE4562E810DC400E2370A /* PixelDays.app */;
+			productReference = 5A0DE4562E810DC400E2370A /* CountMyDays.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -98,7 +98,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 5A0DE4512E810DC400E2370A /* Build configuration list for PBXProject "PixelDays" */;
+			buildConfigurationList = 5A0DE4512E810DC400E2370A /* Build configuration list for PBXProject "CountMyDays" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -113,7 +113,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				5A0DE4552E810DC400E2370A /* PixelDays */,
+				5A0DE4552E810DC400E2370A /* CountMyDays */,
 			);
 		};
 /* End PBXProject section */
@@ -144,13 +144,11 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = PixelDays/PixelDays.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = YPV49M8592;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = PixelDays/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = CountMyDays;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
@@ -164,7 +162,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.xnu.pixelday;
+				PRODUCT_BUNDLE_IDENTIFIER = com.xnu.countmydays;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -181,13 +179,11 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = PixelDays/PixelDays.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = YPV49M8592;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = PixelDays/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = CountMyDays;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
@@ -201,7 +197,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.xnu.pixelday;
+				PRODUCT_BUNDLE_IDENTIFIER = com.xnu.countmydays;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -337,7 +333,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		5A0DE4512E810DC400E2370A /* Build configuration list for PBXProject "PixelDays" */ = {
+		5A0DE4512E810DC400E2370A /* Build configuration list for PBXProject "CountMyDays" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				5A0DE4672E810DC500E2370A /* Debug */,
@@ -346,7 +342,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		5A0DE4642E810DC500E2370A /* Build configuration list for PBXNativeTarget "PixelDays" */ = {
+		5A0DE4642E810DC500E2370A /* Build configuration list for PBXNativeTarget "CountMyDays" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				5A0DE4652E810DC500E2370A /* Debug */,
