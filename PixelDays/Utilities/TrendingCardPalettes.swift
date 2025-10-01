@@ -19,7 +19,7 @@ struct TrendingCardPalette: Identifiable, Equatable {
 enum TrendingCardPalettes {
     static let all: [TrendingCardPalette] = [
         TrendingCardPalette(name: "Olive Garden Feast", colors: ["#606C38", "#283618", "#FEFAE0", "#DDA15E", "#BC6C25"]),
-        TrendingCardPalette(name: "Pastel Dreamland Adventure", colors: ["#CDB4DB", "#FFC8DD", "#FFAFCC", "#BDE0FE", "#A2D2FF"]),
+        TrendingCardPalette(name: "Pastel Dreamland Adventure", colors: ["#D9B8FF", "#B88CFF", "#9A6BFF", "#6D8DFF", "#3F6FFF"]),
         TrendingCardPalette(name: "Fiery Ocean", colors: ["#780000", "#C1121F", "#FDF0D5", "#003049", "#669BBC"]),
         TrendingCardPalette(name: "Golden Summer Fields", colors: ["#CCD5AE", "#E9EDC9", "#FEFAE0", "#FAEDCD", "#D4A373"]),
         TrendingCardPalette(name: "Black & Gold Elegance", colors: ["#000000", "#14213D", "#FCA311", "#E5E5E5", "#FFFFFF"]),
