@@ -79,7 +79,7 @@
 			name = CountMyDays;
 			packageProductDependencies = (
 			);
-			productName = PixelDays;
+			productName = CountMyDays;
 			productReference = 5A0DE4562E810DC400E2370A /* CountMyDays.app */;
 			productType = "com.apple.product-type.application";
 		};

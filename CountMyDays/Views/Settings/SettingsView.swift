@@ -70,7 +70,7 @@ struct SettingsView: View {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("CountMyDays")
                             .font(.headline)
-                        Text("A pixel-styled day counter for the moments that matter.")
+                        Text("A simple day counter for the moments that matter.")
                             .font(.footnote)
                             .foregroundStyle(.secondary)
                     }
