@@ -54,6 +54,14 @@ struct AppTabView: View {
         horizontalSizeClass == .regular && verticalSizeClass != .compact && !dynamicTypeSize.isAccessibilitySize
     }
 
+    private var adaptiveSheetDetents: Set<PresentationDetent> {
+        supportsLiquidGlass ? [.fraction(0.55), .fraction(0.8), .large] : [.medium, .large]
+    }
+
+    private var adaptiveSheetCornerRadius: CGFloat {
+        supportsLiquidGlass ? 32 : 20
+    }
+
     var body: some View {
         ZStack(alignment: .bottom) {
             if supportsLiquidGlass {
@@ -151,7 +159,9 @@ struct AppTabView: View {
     private func importSummarySheet() -> some View {
         if let summary = importSummary {
             ImportSummaryView(summary: summary)
-                .presentationDetents([.large])
+                .presentationDetents(adaptiveSheetDetents)
+                .presentationCornerRadius(adaptiveSheetCornerRadius)
+                .presentationDragIndicator(.visible)
         }
     }
 
@@ -159,6 +169,8 @@ struct AppTabView: View {
     private func shareSheet() -> some View {
         if let url = exportedURL {
             ShareSheet(activityItems: [url])
+                .presentationDetents(adaptiveSheetDetents)
+                .presentationCornerRadius(adaptiveSheetCornerRadius)
         }
     }
 
@@ -169,7 +181,8 @@ struct AppTabView: View {
             showTextImport = false
             pastedJSON = ""
         }
-        .presentationDetents([.large])
+        .presentationDetents(adaptiveSheetDetents)
+        .presentationCornerRadius(adaptiveSheetCornerRadius)
         .presentationDragIndicator(.visible)
     }
 
@@ -180,7 +193,8 @@ struct AppTabView: View {
         },
                      onImportText: { presentTextImport() },
                      onExport: exportEntries)
-        .presentationDetents([.large])
+        .presentationDetents(adaptiveSheetDetents)
+        .presentationCornerRadius(adaptiveSheetCornerRadius)
         .presentationDragIndicator(.visible)
     }
 

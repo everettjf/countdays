@@ -242,7 +242,9 @@ struct HomeView: View {
                 delete(entry: entry)
             }
         }
-        .presentationDetents([.large])
+        .presentationDetents(Set(layout.sheetDetents))
+        .presentationCornerRadius(layout.sheetCornerRadius)
+        .presentationDragIndicator(.visible)
     }
 
     private func configureInitialFilter() {
@@ -335,6 +337,8 @@ private struct LayoutMetrics {
     let maxColumnWidth: CGFloat
     let contentAlignment: Alignment
     let showsFilterPicker: Bool
+    let sheetDetents: [PresentationDetent]
+    let sheetCornerRadius: CGFloat
 
     init(horizontalSizeClass: UserInterfaceSizeClass?,
          verticalSizeClass: UserInterfaceSizeClass?,
@@ -361,5 +365,12 @@ private struct LayoutMetrics {
         maxColumnWidth = useWide ? 420 : 360
         contentAlignment = useWide ? .center : .leading
         self.showsFilterPicker = showsFilterPicker
+        if useWide {
+            sheetDetents = [.fraction(0.66), .fraction(0.9)]
+            sheetCornerRadius = 32
+        } else {
+            sheetDetents = [.large]
+            sheetCornerRadius = 24
+        }
     }
 }
