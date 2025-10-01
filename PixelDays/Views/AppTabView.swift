@@ -2,42 +2,12 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 struct AppTabView: View {
-    private enum Tab: Hashable {
-        case all
-        case pinned
-        case archived
-
-        var title: String {
-            switch self {
-            case .all: return "All"
-            case .pinned: return "Pinned"
-            case .archived: return "Archived"
-            }
-        }
-
-        var systemImage: String {
-            switch self {
-            case .all: return "square.grid.2x2"
-            case .pinned: return "pin"
-            case .archived: return "archivebox"
-            }
-        }
-
-        var filter: EntryStore.Filter {
-            switch self {
-            case .all: return .all
-            case .pinned: return .pinned
-            case .archived: return .archived
-            }
-        }
-    }
-
     @EnvironmentObject private var store: EntryStore
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Environment(\.verticalSizeClass) private var verticalSizeClass
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
-    @State private var selection: Tab = .all
+    @State private var searchText: String = ""
 
     @State private var showImporter = false
     @State private var importSummary: ImportService.Summary?
@@ -55,11 +25,11 @@ struct AppTabView: View {
     }
 
     private var adaptiveSheetDetents: Set<PresentationDetent> {
-        supportsLiquidGlass ? [.fraction(0.55), .fraction(0.8), .large] : [.medium, .large]
+        supportsLiquidGlass ? [.fraction(0.55), .fraction(0.8), .large] : [.large]
     }
 
     private var adaptiveSheetCornerRadius: CGFloat {
-        supportsLiquidGlass ? 32 : 20
+        supportsLiquidGlass ? 32 : 0
     }
 
     var body: some View {
@@ -69,20 +39,7 @@ struct AppTabView: View {
                     .transition(.opacity)
             }
 
-            TabView(selection: $selection) {
-                ForEach([Tab.all, .pinned, .archived], id: \.self) { tab in
-                    HomeView(initialFilter: tab.filter,
-                             showsFilterPicker: false,
-                             onShowSettings: { showSettings = true })
-                        .tabItem {
-                            Label(tab.title, systemImage: tab.systemImage)
-                        }
-                        .tag(tab)
-                }
-            }
-            .tabViewStyle(.automatic)
-            .toolbarBackground(supportsLiquidGlass ? .hidden : .visible, for: .tabBar)
-            .toolbarBackground(supportsLiquidGlass ? .hidden : .visible, for: .bottomBar)
+            tabView
         }
         .fileImporter(isPresented: $showImporter, allowedContentTypes: [.json], onCompletion: handleFileImport)
         .sheet(isPresented: $showImportSummary, content: importSummarySheet)
@@ -94,6 +51,43 @@ struct AppTabView: View {
         }, message: {
             Text(errorMessage)
         })
+    }
+
+    private var tabView: some View {
+        TabView {
+            Tab("All", systemImage: "square.grid.2x2") {
+                HomeView(initialFilter: .all,
+                         showsFilterPicker: false,
+                         allowsSearch: false,
+                         onShowSettings: { showSettings = true })
+            }
+
+            Tab("Pinned", systemImage: "pin") {
+                HomeView(initialFilter: .pinned,
+                         showsFilterPicker: false,
+                         allowsSearch: false,
+                         onShowSettings: { showSettings = true })
+            }
+
+            Tab("Archived", systemImage: "archivebox") {
+                HomeView(initialFilter: .archived,
+                         showsFilterPicker: false,
+                         allowsSearch: false,
+                         onShowSettings: { showSettings = true })
+            }
+
+            Tab(role: .search) {
+                NavigationStack {
+                    SearchTabView(searchText: $searchText,
+                                  onShowSettings: { showSettings = true })
+                        .navigationTitle("Search")
+                }
+            }
+        }
+        .tabViewStyle(.automatic)
+        .toolbarBackground(supportsLiquidGlass ? .hidden : .visible, for: .tabBar)
+        .toolbarBackground(supportsLiquidGlass ? .hidden : .visible, for: .bottomBar)
+        .searchable(text: $searchText, prompt: Text("Search entries"))
     }
 
     private func presentTextImport() {

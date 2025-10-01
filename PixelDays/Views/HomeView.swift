@@ -16,6 +16,7 @@ struct HomeView: View {
     @State private var entryPendingDeletion: Entry?
 
     private let showsFilterPicker: Bool
+    private let allowsSearch: Bool
     private let onShowSettings: (() -> Void)?
 
     private var entries: [Entry] { store.entries }
@@ -33,18 +34,24 @@ struct HomeView: View {
 
     init(initialFilter: EntryStore.Filter = .all,
          showsFilterPicker: Bool = true,
+         allowsSearch: Bool = false,
          onShowSettings: (() -> Void)? = nil) {
         _filter = State(initialValue: initialFilter)
         self.showsFilterPicker = showsFilterPicker
+        self.allowsSearch = allowsSearch
         self.onShowSettings = onShowSettings
     }
 
     var body: some View {
-        NavigationStack {
-            mainContent
-                .navigationTitle("CountMyDays")
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar { toolbarContent() }
+        Group {
+            if allowsSearch {
+                navigationContent
+                    .searchable(text: $searchText,
+                                placement: .navigationBarDrawer(displayMode: .always),
+                                prompt: Text("Search entries"))
+            } else {
+                navigationContent
+            }
         }
         .confirmationDialog("Delete Entry?", isPresented: $showDeleteConfirm, presenting: entryPendingDeletion, actions: { entry in
             deleteDialogActions(for: entry)
@@ -70,36 +77,33 @@ struct HomeView: View {
     }
 
     private var header: some View {
-        contentContainer {
-            Group {
-                if showsFilterPicker {
+        Group {
+            if showsFilterPicker {
+                contentContainer {
                     if layout.usesHorizontalHeader {
                         HStack(alignment: .center, spacing: layout.horizontalHeaderSpacing) {
-                            if let maxWidth = layout.filterMaxWidth {
-                                filterPickerView
-                                    .frame(maxWidth: maxWidth)
-                            } else {
-                                filterPickerView
-                            }
-                            searchFieldView
-                                .frame(maxWidth: .infinity)
+                            filterPickerView
+                                .frame(maxWidth: layout.filterMaxWidth ?? .infinity, alignment: .leading)
+                            Spacer(minLength: 0)
                         }
                     } else {
-                        VStack(alignment: .leading, spacing: layout.headerSpacing) {
-                            filterPickerView
-                                .frame(maxWidth: .infinity)
-                            searchFieldView
-                                .frame(maxWidth: .infinity)
-                        }
+                        filterPickerView
+                            .frame(maxWidth: .infinity)
                     }
-                } else {
-                    searchFieldView
-                        .frame(maxWidth: .infinity)
                 }
+                .padding(.top, layout.headerTopPadding)
+                .padding(.bottom, layout.headerBottomPadding)
             }
         }
-        .padding(.top, layout.headerTopPadding)
-        .padding(.bottom, layout.headerBottomPadding)
+    }
+
+    private var navigationContent: some View {
+        NavigationStack {
+            mainContent
+                .navigationTitle("CountMyDays")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar { toolbarContent() }
+        }
     }
 
     private var entriesGrid: some View {
@@ -256,6 +260,7 @@ struct HomeView: View {
     }
 
     private func updateSearch(_ text: String) {
+        guard allowsSearch else { return }
         store.set(search: text)
     }
 
@@ -300,30 +305,12 @@ private extension HomeView {
         .pickerStyle(.segmented)
     }
 
-    var searchFieldView: some View {
-        HStack(spacing: 8) {
-            Image(systemName: "magnifyingglass")
-                .foregroundStyle(Color(.secondaryLabel))
-            TextField("Search", text: $searchText)
-                .textInputAutocapitalization(.words)
-                .disableAutocorrection(true)
-                .foregroundStyle(Color(.label))
-        }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 10)
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .strokeBorder(Color(.separator), lineWidth: 1)
-                .background(RoundedRectangle(cornerRadius: 12).fill(Color(UIColor.secondarySystemBackground)))
-        )
-    }
 }
 
 private struct LayoutMetrics {
     let contentWidth: CGFloat?
     let horizontalPadding: CGFloat
     let usesHorizontalHeader: Bool
-    let headerSpacing: CGFloat
     let horizontalHeaderSpacing: CGFloat
     let filterMaxWidth: CGFloat?
     let headerTopPadding: CGFloat
@@ -351,7 +338,6 @@ private struct LayoutMetrics {
         usesHorizontalHeader = useWide
         contentWidth = useWide ? 840 : nil
         horizontalPadding = useWide ? 32 : 16
-        headerSpacing = showsFilterPicker ? (useWide ? 16 : 10) : 0
         horizontalHeaderSpacing = useWide ? 20 : 12
         filterMaxWidth = useWide ? 340 : nil
         headerTopPadding = showsFilterPicker ? (useWide ? 28 : 12) : (useWide ? 18 : 10)
