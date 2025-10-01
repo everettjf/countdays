@@ -26,8 +26,8 @@ enum TrendingCardPalettes {
         TrendingCardPalette(name: "Refreshing Summer Fun", colors: ["#8ECAE6", "#219EBC", "#023047", "#FFB703", "#FB8500"]),
         TrendingCardPalette(name: "Ocean Breeze", colors: ["#03045E", "#0077B6", "#00B4D8", "#90E0EF", "#CAF0F8"]),
         TrendingCardPalette(name: "Fiery Palette", colors: ["#5F0F40", "#9A031E", "#FB8B24", "#E36414", "#0F4C5C"]),
-        TrendingCardPalette(name: "Soft Pastels", colors: ["#FFD6FF", "#E7C6FF", "#C8B6FF", "#B8C0FF", "#BBD0FF"]),
-        TrendingCardPalette(name: "Soft Pink Delight", colors: ["#FFE5EC", "#FFC2D1", "#FFB3C6", "#FF8FAB", "#FB6F92"])
+        TrendingCardPalette(name: "Soft Pastels", colors: ["#E9C1FF", "#CF96FF", "#A569FF", "#774BFF", "#4234C7"]),
+        TrendingCardPalette(name: "Soft Pink Delight", colors: ["#FFC3D8", "#FF93BA", "#FF659F", "#F13D7B", "#C2265C"])
     ]
 
     static func palette(for hex: String) -> TrendingCardPalette? {
