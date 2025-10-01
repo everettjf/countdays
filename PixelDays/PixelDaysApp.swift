@@ -6,7 +6,7 @@ struct PixelDaysApp: App {
 
     var body: some Scene {
         WindowGroup {
-            HomeView()
+            AppTabView()
                 .environmentObject(entryStore)
         }
     }

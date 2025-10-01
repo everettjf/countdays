@@ -1,5 +1,4 @@
 import SwiftUI
-import UniformTypeIdentifiers
 
 struct HomeView: View {
     @EnvironmentObject private var store: EntryStore
@@ -7,33 +6,37 @@ struct HomeView: View {
     @Environment(\.verticalSizeClass) private var verticalSizeClass
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
-    @State private var filter: EntryStore.Filter = .all
+    @State private var filter: EntryStore.Filter
     @State private var searchText: String = ""
     @State private var editingEntry: Entry?
     @State private var activeDraft: EntryDraft?
-    @State private var showImporter = false
-    @State private var importSummary: ImportService.Summary?
-    @State private var showImportSummary = false
     @State private var showErrorAlert = false
     @State private var errorMessage: String = ""
-    @State private var showSettings = false
-    @State private var showShareSheet = false
-    @State private var exportedURL: URL?
     @State private var showDeleteConfirm = false
     @State private var entryPendingDeletion: Entry?
-    @State private var showTextImport = false
-    @State private var pastedJSON: String = ""
+
+    private let showsFilterPicker: Bool
+    private let onShowSettings: (() -> Void)?
 
     private var entries: [Entry] { store.entries }
     private var layout: LayoutMetrics {
         LayoutMetrics(horizontalSizeClass: horizontalSizeClass,
                       verticalSizeClass: verticalSizeClass,
-                      dynamicTypeSize: dynamicTypeSize)
+                      dynamicTypeSize: dynamicTypeSize,
+                      showsFilterPicker: showsFilterPicker)
     }
 
     private var gridColumns: [GridItem] {
         [GridItem(.adaptive(minimum: layout.minColumnWidth, maximum: layout.maxColumnWidth),
                   spacing: layout.gridSpacing)]
+    }
+
+    init(initialFilter: EntryStore.Filter = .all,
+         showsFilterPicker: Bool = true,
+         onShowSettings: (() -> Void)? = nil) {
+        _filter = State(initialValue: initialFilter)
+        self.showsFilterPicker = showsFilterPicker
+        self.onShowSettings = onShowSettings
     }
 
     var body: some View {
@@ -43,11 +46,6 @@ struct HomeView: View {
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar { toolbarContent() }
         }
-        .sheet(isPresented: $showSettings, content: settingsSheet)
-        .fileImporter(isPresented: $showImporter, allowedContentTypes: [.json], onCompletion: handleFileImport)
-        .sheet(isPresented: $showImportSummary, content: importSummarySheet)
-        .sheet(isPresented: $showShareSheet, onDismiss: { exportedURL = nil }, content: shareSheet)
-        .sheet(isPresented: $showTextImport, content: textImportSheet)
         .confirmationDialog("Delete Entry?", isPresented: $showDeleteConfirm, presenting: entryPendingDeletion, actions: { entry in
             deleteDialogActions(for: entry)
         }, message: { entry in
@@ -74,24 +72,29 @@ struct HomeView: View {
     private var header: some View {
         contentContainer {
             Group {
-                if layout.usesHorizontalHeader {
-                    HStack(alignment: .center, spacing: layout.horizontalHeaderSpacing) {
-                        if let maxWidth = layout.filterMaxWidth {
-                            filterPickerView
-                                .frame(maxWidth: maxWidth)
-                        } else {
-                            filterPickerView
+                if showsFilterPicker {
+                    if layout.usesHorizontalHeader {
+                        HStack(alignment: .center, spacing: layout.horizontalHeaderSpacing) {
+                            if let maxWidth = layout.filterMaxWidth {
+                                filterPickerView
+                                    .frame(maxWidth: maxWidth)
+                            } else {
+                                filterPickerView
+                            }
+                            searchFieldView
+                                .frame(maxWidth: .infinity)
                         }
-                        searchFieldView
-                            .frame(maxWidth: .infinity)
+                    } else {
+                        VStack(alignment: .leading, spacing: layout.headerSpacing) {
+                            filterPickerView
+                                .frame(maxWidth: .infinity)
+                            searchFieldView
+                                .frame(maxWidth: .infinity)
+                        }
                     }
                 } else {
-                    VStack(alignment: .leading, spacing: layout.headerSpacing) {
-                        filterPickerView
-                            .frame(maxWidth: .infinity)
-                        searchFieldView
-                            .frame(maxWidth: .infinity)
-                    }
+                    searchFieldView
+                        .frame(maxWidth: .infinity)
                 }
             }
         }
@@ -150,11 +153,11 @@ struct HomeView: View {
 
     @ToolbarContentBuilder
     private func toolbarContent() -> some ToolbarContent {
-        ToolbarItem(placement: .navigationBarLeading) {
-            Button {
-                showSettings = true
-            } label: {
-                Label("Settings", systemImage: "gearshape")
+        if let onShowSettings {
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button(action: onShowSettings) {
+                    Label("Settings", systemImage: "gearshape")
+                }
             }
         }
         ToolbarItem(placement: .navigationBarTrailing) {
@@ -201,41 +204,6 @@ struct HomeView: View {
         }
     }
 
-    private func showTextImporter() {
-        print("🔍 Debug: Paste JSON button clicked - showing text importer")
-        pastedJSON = ""
-        showTextImport = true
-    }
-
-    private func handlePastedJSON(_ text: String) {
-        do {
-            let cleaned = text.trimmingCharacters(in: .whitespacesAndNewlines)
-            guard !cleaned.isEmpty else { throw TextImportError.empty }
-            guard let data = cleaned.data(using: .utf8) else { throw TextImportError.invalidEncoding }
-            let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".json")
-            try data.write(to: tempURL, options: .atomic)
-            let summary = ImportService(store: store).importEntries(from: tempURL)
-            importSummary = summary
-            showImportSummary = true
-        } catch TextImportError.empty {
-            errorMessage = "Paste some JSON before importing."
-            showErrorAlert = true
-        } catch TextImportError.invalidEncoding {
-            errorMessage = "The pasted text is not valid UTF-8."
-            showErrorAlert = true
-        } catch {
-            errorMessage = error.localizedDescription
-            showErrorAlert = true
-        }
-        showTextImport = false
-        pastedJSON = ""
-    }
-
-    private enum TextImportError: Error {
-        case empty
-        case invalidEncoding
-    }
-
     private func requestDelete(_ entry: Entry) {
         entryPendingDeletion = entry
         showDeleteConfirm = true
@@ -252,71 +220,6 @@ struct HomeView: View {
         editingEntry = nil
         entryPendingDeletion = nil
         showDeleteConfirm = false
-    }
-
-    private func exportEntries() {
-        do {
-            let items = store.allItems()
-            guard !items.isEmpty else {
-                errorMessage = "Nothing to export yet. Add an entry first."
-                showErrorAlert = true
-                return
-            }
-            let url = try ExportService().export(entries: items)
-            exportedURL = url
-            showShareSheet = true
-        } catch {
-            errorMessage = error.localizedDescription
-            showErrorAlert = true
-        }
-    }
-
-    @ViewBuilder
-    private func settingsSheet() -> some View {
-        SettingsView(onImport: {
-            print("🔍 Debug: Import JSON button clicked - showing file importer")
-            showImporter = true
-        },
-                     onImportText: { showTextImporter() },
-                     onExport: exportEntries)
-        .presentationDetents([.large])
-        .presentationDragIndicator(.visible)
-    }
-
-    private func handleFileImport(_ result: Result<URL, Error>) {
-        switch result {
-        case .success(let url):
-            let summary = ImportService(store: store).importEntries(from: url)
-            importSummary = summary
-            showImportSummary = true
-        case .failure(let error):
-            let status = ImportService.RowStatus(title: "Import Failed", state: .skipped(error.localizedDescription))
-            importSummary = ImportService.Summary(statuses: [status])
-            showImportSummary = true
-        }
-    }
-
-    @ViewBuilder
-    private func importSummarySheet() -> some View {
-        if let summary = importSummary {
-            ImportSummaryView(summary: summary)
-        }
-    }
-
-    @ViewBuilder
-    private func shareSheet() -> some View {
-        if let url = exportedURL {
-            ShareSheet(activityItems: [url])
-        }
-    }
-
-    private func textImportSheet() -> some View {
-        TextImportSheet(initialText: pastedJSON) { text in
-            handlePastedJSON(text)
-        } onCancel: {
-            showTextImport = false
-            pastedJSON = ""
-        }
     }
 
     @ViewBuilder
@@ -431,10 +334,12 @@ private struct LayoutMetrics {
     let minColumnWidth: CGFloat
     let maxColumnWidth: CGFloat
     let contentAlignment: Alignment
+    let showsFilterPicker: Bool
 
     init(horizontalSizeClass: UserInterfaceSizeClass?,
          verticalSizeClass: UserInterfaceSizeClass?,
-         dynamicTypeSize: DynamicTypeSize) {
+         dynamicTypeSize: DynamicTypeSize,
+         showsFilterPicker: Bool) {
         let prefersWideLayout = horizontalSizeClass == .regular && verticalSizeClass != .compact
         let isAccessibility = dynamicTypeSize.isAccessibilitySize
         let useWide = prefersWideLayout && !isAccessibility
@@ -442,11 +347,11 @@ private struct LayoutMetrics {
         usesHorizontalHeader = useWide
         contentWidth = useWide ? 840 : nil
         horizontalPadding = useWide ? 32 : 16
-        headerSpacing = useWide ? 16 : 10
+        headerSpacing = showsFilterPicker ? (useWide ? 16 : 10) : 0
         horizontalHeaderSpacing = useWide ? 20 : 12
         filterMaxWidth = useWide ? 340 : nil
-        headerTopPadding = useWide ? 28 : 12
-        headerBottomPadding = useWide ? 8 : 12
+        headerTopPadding = showsFilterPicker ? (useWide ? 28 : 12) : (useWide ? 18 : 10)
+        headerBottomPadding = showsFilterPicker ? (useWide ? 8 : 12) : (useWide ? 16 : 14)
         gridSpacing = useWide ? 28 : 20
         gridTopPadding = useWide ? 8 : 12
         gridBottomPadding = useWide ? 140 : 84
@@ -455,5 +360,6 @@ private struct LayoutMetrics {
         minColumnWidth = useWide ? 320 : 260
         maxColumnWidth = useWide ? 420 : 360
         contentAlignment = useWide ? .center : .leading
+        self.showsFilterPicker = showsFilterPicker
     }
 }
