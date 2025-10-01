@@ -82,12 +82,12 @@ struct AppTabView: View {
                                   onShowSettings: { showSettings = true })
                         .navigationTitle("Search")
                 }
+                .searchable(text: $searchText, prompt: Text("Search"))
             }
         }
         .tabViewStyle(.automatic)
         .toolbarBackground(supportsLiquidGlass ? .hidden : .visible, for: .tabBar)
         .toolbarBackground(supportsLiquidGlass ? .hidden : .visible, for: .bottomBar)
-        .searchable(text: $searchText, prompt: Text("Search entries"))
     }
 
     private func presentTextImport() {

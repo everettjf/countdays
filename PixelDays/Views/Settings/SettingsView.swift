@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.openURL) private var openURL
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     let onImport: () -> Void
@@ -12,39 +13,55 @@ struct SettingsView: View {
         SettingsLayout(horizontalSizeClass: horizontalSizeClass, dynamicTypeSize: dynamicTypeSize)
     }
 
+    private let supportEmailURL = URL(string: "mailto:xnuapp@gmail.com")
+    private let websiteURL = URL(string: "https://xnu.app/countmydays")
+
     var body: some View {
         NavigationStack {
             List {
                 Section("Data") {
-                    
                     NavigationLink {
                         ImportExportGuideView(onImport: { dismissAnd(onImport) },
                                                onExport: { dismissAnd(onExport) })
                     } label: {
                         Label("Import & Export Guide", systemImage: "questionmark.circle")
                     }
-                    
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("Import from a file or paste JSON directly. You'll review the summary before anything is saved.")
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-                        HStack {
-                            Button { dismissAnd(onImport) } label: {
-                                Label("Import JSON", systemImage: "tray.and.arrow.down")
-                            }
-                            Divider()
-                            Button { dismissAnd(onImportText) } label: {
-                                Label("Paste JSON", systemImage: "doc.on.doc")
-                            }
+
+                    Menu {
+                        Button {
+                            dismissAnd(onImport)
+                        } label: {
+                            Label("Import JSON from File", systemImage: "tray.and.arrow.down")
+                        }
+                        Button {
+                            dismissAnd(onImportText)
+                        } label: {
+                            Label("Import from Clipboard", systemImage: "doc.on.doc")
+                        }
+                        Button {
+                            dismissAnd(onExport)
+                        } label: {
+                            Label("Export JSON", systemImage: "square.and.arrow.up")
+                        }
+                    } label: {
+                        Label("Manage Data", systemImage: "folder.badge.gear")
+                    }
+                }
+
+                Section("Support") {
+                    if let supportEmailURL {
+                        Button {
+                            dismissAndOpen(supportEmailURL)
+                        } label: {
+                            Label("Email Support", systemImage: "envelope")
                         }
                     }
 
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("Create a portable snapshot using the same schema—great for backups or sharing.")
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-                        Button { dismissAnd(onExport) } label: {
-                            Label("Export JSON", systemImage: "square.and.arrow.up")
+                    if let websiteURL {
+                        Button {
+                            dismissAndOpen(websiteURL)
+                        } label: {
+                            Label("Visit Website", systemImage: "globe")
                         }
                     }
                 }
@@ -72,6 +89,13 @@ struct SettingsView: View {
     private func dismissAnd(_ action: @escaping () -> Void) {
         dismiss()
         DispatchQueue.main.async { action() }
+    }
+
+    private func dismissAndOpen(_ url: URL) {
+        dismiss()
+        DispatchQueue.main.async {
+            openURL(url)
+        }
     }
 }
 
