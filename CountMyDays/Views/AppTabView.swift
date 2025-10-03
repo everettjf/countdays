@@ -141,7 +141,7 @@ struct AppTabView: View {
         SettingsView(onImport: {
             showImporter = true
         },
-                     onExport: exportEntries)
+        onExport: exportEntries)
         .presentationDetents(adaptiveSheetDetents)
         .presentationCornerRadius(adaptiveSheetCornerRadius)
         .presentationDragIndicator(.visible)

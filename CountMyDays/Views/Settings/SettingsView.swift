@@ -1,12 +1,16 @@
 import SwiftUI
 
 struct SettingsView: View {
+    @EnvironmentObject private var store: EntryStore
     @Environment(\.dismiss) private var dismiss
     @Environment(\.openURL) private var openURL
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     let onImport: () -> Void
     let onExport: () -> Void
+
+    @State private var showClearAllSheet = false
+    @State private var showClearSuccessAlert = false
 
     private var layout: SettingsLayout {
         SettingsLayout(horizontalSizeClass: horizontalSizeClass, dynamicTypeSize: dynamicTypeSize)
@@ -37,6 +41,7 @@ struct SettingsView: View {
                     } label: {
                         Label("Export JSON", systemImage: "square.and.arrow.up")
                     }
+
                 }
 
                 Section("Support") {
@@ -58,19 +63,21 @@ struct SettingsView: View {
                 }
 
                 Section("About") {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text(Bundle.main.appDisplayName)
-                            .font(.headline)
-                        Text("A simple day counter for the moments that matter.")
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-                    }
 
                     HStack {
                         Label("Version", systemImage: "number")
                         Spacer()
                         Text(Bundle.main.formattedVersion)
                             .foregroundStyle(.secondary)
+                    }
+                    
+                    
+                    if !store.allItems().isEmpty {
+                        Button(role: .cancel) {
+                            showClearAllSheet = true
+                        } label: {
+                            Label("Delete All Entries", systemImage: "trash")
+                        }
                     }
                 }
             }
@@ -81,6 +88,16 @@ struct SettingsView: View {
                 }
             }
             .modifier(CenteredListModifier(layout: layout))
+        }
+        .sheet(isPresented: $showClearAllSheet) {
+            ClearAllDataView {
+                showClearSuccessAlert = true
+            }
+            .presentationDetents([.medium, .large])
+            .presentationCornerRadius(24)
+        }
+        .alert("All entries deleted", isPresented: $showClearSuccessAlert) {
+            Button("OK", role: .cancel) {}
         }
     }
 

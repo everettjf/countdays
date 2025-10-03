@@ -144,6 +144,13 @@ final class EntryStore: ObservableObject {
         persistSilently()
     }
 
+    func removeAllEntries() throws {
+        guard !allEntries.isEmpty else { return }
+        allEntries.removeAll()
+        try save()
+        applyFilters()
+    }
+
     func allItems() -> [Entry] {
         allEntries.sorted(by: sortPredicate)
     }
