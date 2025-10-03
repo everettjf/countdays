@@ -32,7 +32,12 @@ enum TrendingCardPalettes {
 
     static func palette(for hex: String) -> TrendingCardPalette? {
         let normalizedHex = normalize(hex)
-        return all.first { normalize($0.primaryHex) == normalizedHex }
+        for palette in all {
+            if normalize(palette.primaryHex) == normalizedHex {
+                return palette
+            }
+        }
+        return nil
     }
 
     static var defaultHex: String {
@@ -40,7 +45,10 @@ enum TrendingCardPalettes {
     }
 
     static func randomPrimaryHex() -> String {
-        (all.randomElement()?.primaryHex).map(normalize) ?? defaultHex
+        if let randomHex = all.randomElement()?.primaryHex {
+            return normalize(randomHex)
+        }
+        return defaultHex
     }
 
     static func normalize(_ value: String) -> String {

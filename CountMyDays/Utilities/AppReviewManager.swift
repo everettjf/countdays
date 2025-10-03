@@ -42,19 +42,19 @@ enum AppReviewManager {
             return
         }
 
-        requestReview()
+        await requestReview()
         defaults.set(Date(), forKey: lastPromptDateKey)
     }
 
     @MainActor
-    private static func requestReview() {
+    private static func requestReview() async {
 #if canImport(UIKit)
         guard let scene = UIApplication.shared.connectedScenes
             .compactMap({ $0 as? UIWindowScene })
             .first(where: { $0.activationState == .foregroundActive }) else {
             return
         }
-        SKStoreReviewController.requestReview(in: scene)
+        try? await AppStore.requestReview(in: scene)
 #endif
     }
 }

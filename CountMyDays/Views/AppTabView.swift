@@ -12,8 +12,7 @@ struct AppTabView: View {
     @State private var showImporter = false
     @State private var importSummary: ImportService.Summary?
     @State private var showImportSummary = false
-    @State private var showShareSheet = false
-    @State private var exportedURL: URL?
+    @State private var exportedFile: ExportedFile?
     @State private var showErrorAlert = false
     @State private var errorMessage: String = ""
     @State private var showSettings = false
@@ -41,7 +40,9 @@ struct AppTabView: View {
         }
         .fileImporter(isPresented: $showImporter, allowedContentTypes: [.json], onCompletion: handleFileImport)
         .sheet(isPresented: $showImportSummary, content: importSummarySheet)
-        .sheet(isPresented: $showShareSheet, onDismiss: { exportedURL = nil }, content: shareSheet)
+        .sheet(item: $exportedFile) { file in
+            shareSheet(for: file.url)
+        }
         .sheet(isPresented: $showSettings, content: settingsSheet)
         .alert("Error", isPresented: $showErrorAlert, actions: {
             Button("OK", role: .cancel) { showErrorAlert = false }
@@ -109,8 +110,7 @@ struct AppTabView: View {
                 return
             }
             let url = try ExportService().export(entries: items)
-            exportedURL = url
-            showShareSheet = true
+            exportedFile = ExportedFile(url: url)
         } catch {
             errorMessage = error.localizedDescription
             showErrorAlert = true
@@ -128,12 +128,10 @@ struct AppTabView: View {
     }
 
     @ViewBuilder
-    private func shareSheet() -> some View {
-        if let url = exportedURL {
-            ShareSheet(activityItems: [url])
-                .presentationDetents(adaptiveSheetDetents)
-                .presentationCornerRadius(adaptiveSheetCornerRadius)
-        }
+    private func shareSheet(for url: URL) -> some View {
+        ShareSheet(activityItems: [url])
+            .presentationDetents(adaptiveSheetDetents)
+            .presentationCornerRadius(adaptiveSheetCornerRadius)
     }
 
     @ViewBuilder
@@ -141,7 +139,7 @@ struct AppTabView: View {
         SettingsView(onImport: {
             showImporter = true
         },
-        onExport: exportEntries)
+                     onExport: exportEntries)
         .presentationDetents(adaptiveSheetDetents)
         .presentationCornerRadius(adaptiveSheetCornerRadius)
         .presentationDragIndicator(.visible)
@@ -182,4 +180,9 @@ private struct LiquidGlassTabBackground: View {
         .ignoresSafeArea(edges: .bottom)
         .allowsHitTesting(false)
     }
+}
+
+private struct ExportedFile: Identifiable {
+    let id = UUID()
+    let url: URL
 }

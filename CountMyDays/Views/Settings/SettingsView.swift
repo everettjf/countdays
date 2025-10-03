@@ -45,19 +45,18 @@ struct SettingsView: View {
                 }
 
                 Section("Support") {
-                    if let supportEmailURL {
-                        Button {
-                            dismissAndOpen(supportEmailURL)
-                        } label: {
-                            Label("Email Support", systemImage: "envelope")
-                        }
-                    }
-
                     if let websiteURL {
                         Button {
                             dismissAndOpen(websiteURL)
                         } label: {
                             Label("Visit Website", systemImage: "globe")
+                        }
+                    }
+                    if let supportEmailURL {
+                        Button {
+                            dismissAndOpen(supportEmailURL)
+                        } label: {
+                            Label("Email Support", systemImage: "envelope")
                         }
                     }
                 }
