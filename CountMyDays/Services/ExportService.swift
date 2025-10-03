@@ -33,10 +33,10 @@ private struct ExportEntry: Codable {
     let target: Date?
     let timezone: String
     let color: String
-    let iconEmoji: String?
+    let icon: String?
     let notes: String?
-    let isPinned: Bool
-    let isArchived: Bool
+    let pinned: Bool
+    let archived: Bool
 
     init(entry: Entry) {
         id = entry.id
@@ -46,10 +46,26 @@ private struct ExportEntry: Codable {
         target = entry.targetDate
         timezone = entry.timezoneID
         color = entry.colorHex
-        iconEmoji = entry.iconEmoji
+        icon = entry.iconEmoji
         notes = entry.notes
-        isPinned = entry.isPinned
-        isArchived = entry.isArchived
+        pinned = entry.isPinned
+        archived = entry.isArchived
+    }
+}
+
+private extension ExportEntry {
+    enum CodingKeys: String, CodingKey {
+        case id
+        case title
+        case type
+        case start
+        case target
+        case timezone
+        case color
+        case icon
+        case notes
+        case pinned
+        case archived
     }
 }
 

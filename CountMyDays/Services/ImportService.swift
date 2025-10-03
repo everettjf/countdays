@@ -190,9 +190,12 @@ private struct ImportEntryDTO: Decodable {
         case color
         case colorHex
         case iconEmoji
+        case icon
         case notes
         case isPinned
         case isArchived
+        case pinned
+        case archived
     }
 
     init(from decoder: Decoder) throws {
@@ -204,9 +207,9 @@ private struct ImportEntryDTO: Decodable {
         target = try container.decodeIfPresent(Date.self, forKey: .target) ?? container.decodeIfPresent(Date.self, forKey: .targetDate)
         timezone = try container.decodeIfPresent(String.self, forKey: .timezone)
         color = try container.decodeIfPresent(String.self, forKey: .color) ?? container.decodeIfPresent(String.self, forKey: .colorHex)
-        iconEmoji = try container.decodeIfPresent(String.self, forKey: .iconEmoji)
+        iconEmoji = try container.decodeIfPresent(String.self, forKey: .iconEmoji) ?? container.decodeIfPresent(String.self, forKey: .icon)
         notes = try container.decodeIfPresent(String.self, forKey: .notes)
-        isPinned = try container.decodeIfPresent(Bool.self, forKey: .isPinned)
-        isArchived = try container.decodeIfPresent(Bool.self, forKey: .isArchived)
+        isPinned = try container.decodeIfPresent(Bool.self, forKey: .pinned) ?? container.decodeIfPresent(Bool.self, forKey: .isPinned)
+        isArchived = try container.decodeIfPresent(Bool.self, forKey: .archived) ?? container.decodeIfPresent(Bool.self, forKey: .isArchived)
     }
 }
