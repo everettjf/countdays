@@ -25,16 +25,23 @@ final class ImportService {
         var imported: [Entry] = []
 
         do {
-            let data = try Data(contentsOf: url)
+            let data = try loadData(from: url)
             let decoder = JSONDecoder()
             decoder.dateDecodingStrategy = .iso8601
-            let payload = try decoder.decode(ImportPayload.self, from: data)
-            guard payload.version == 1 else {
-                rows.append(RowStatus(title: "Invalid Version", state: .skipped("Unsupported import version \(payload.version)")))
-                return Summary(statuses: rows)
+
+            let dtos: [ImportEntryDTO]
+            if let direct = try? decoder.decode([ImportEntryDTO].self, from: data) {
+                dtos = direct
+            } else {
+                let payload = try decoder.decode(ImportPayload.self, from: data)
+                guard payload.version == 1 else {
+                    rows.append(RowStatus(title: "Invalid Version", state: .skipped("Unsupported import version \(payload.version)")))
+                    return Summary(statuses: rows)
+                }
+                dtos = payload.entries
             }
 
-            for dto in payload.entries {
+            for dto in dtos {
                 let displayTitle = (dto.title ?? "Untitled").trimmingCharacters(in: .whitespacesAndNewlines)
                 do {
                     let entry = try process(dto)
@@ -59,6 +66,37 @@ final class ImportService {
 }
 
 private extension ImportService {
+    /// Loads JSON data while handling security-scoped URLs returned by the file importer.
+    func loadData(from url: URL) throws -> Data {
+        let shouldStop = url.startAccessingSecurityScopedResource()
+        defer {
+            if shouldStop {
+                url.stopAccessingSecurityScopedResource()
+            }
+        }
+
+        do {
+            return try Data(contentsOf: url)
+        } catch {
+            var coordinationError: NSError?
+            var result: Data?
+            let coordinator = NSFileCoordinator(filePresenter: nil)
+            coordinator.coordinate(readingItemAt: url, options: [], error: &coordinationError) { coordinatedURL in
+                result = try? Data(contentsOf: coordinatedURL)
+            }
+
+            if let data = result {
+                return data
+            }
+
+            if let coordinationError {
+                throw coordinationError
+            }
+
+            throw error
+        }
+    }
+
     func process(_ dto: ImportEntryDTO) throws -> Entry {
         let title = (dto.title ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
         guard !title.isEmpty else { throw ImportError.validation("Title is required") }
@@ -81,11 +119,11 @@ private extension ImportService {
 
         switch type {
         case .countUp:
-            guard let start = dto.startDate else { throw ImportError.validation("startDate is required for countUp") }
+            guard let start = dto.start else { throw ImportError.validation("start is required for countUp") }
             entry.startDate = DayCounter.startOfDay(start, in: timezone)
             entry.targetDate = nil
         case .countDown:
-            guard let target = dto.targetDate else { throw ImportError.validation("targetDate is required for countDown") }
+            guard let target = dto.target else { throw ImportError.validation("target is required for countDown") }
             entry.targetDate = DayCounter.startOfDay(target, in: timezone)
             entry.startDate = nil
         }
@@ -129,12 +167,43 @@ private struct ImportEntryDTO: Decodable {
     let id: UUID?
     let title: String?
     let type: String?
-    let startDate: Date?
-    let targetDate: Date?
+    let start: Date?
+    let target: Date?
     let timezone: String?
     let color: String?
     let iconEmoji: String?
     let notes: String?
     let isPinned: Bool?
     let isArchived: Bool?
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case title
+        case type
+        case start
+        case target
+        case startDate
+        case targetDate
+        case timezone
+        case color
+        case iconEmoji
+        case notes
+        case isPinned
+        case isArchived
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decodeIfPresent(UUID.self, forKey: .id)
+        title = try container.decodeIfPresent(String.self, forKey: .title)
+        type = try container.decodeIfPresent(String.self, forKey: .type)
+        start = try container.decodeIfPresent(Date.self, forKey: .start) ?? container.decodeIfPresent(Date.self, forKey: .startDate)
+        target = try container.decodeIfPresent(Date.self, forKey: .target) ?? container.decodeIfPresent(Date.self, forKey: .targetDate)
+        timezone = try container.decodeIfPresent(String.self, forKey: .timezone)
+        color = try container.decodeIfPresent(String.self, forKey: .color)
+        iconEmoji = try container.decodeIfPresent(String.self, forKey: .iconEmoji)
+        notes = try container.decodeIfPresent(String.self, forKey: .notes)
+        isPinned = try container.decodeIfPresent(Bool.self, forKey: .isPinned)
+        isArchived = try container.decodeIfPresent(Bool.self, forKey: .isArchived)
+    }
 }

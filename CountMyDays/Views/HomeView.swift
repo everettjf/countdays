@@ -124,22 +124,44 @@ struct HomeView: View {
     }
 
     private var emptyState: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("No entries yet")
-                .font(.title3.weight(.bold))
-                .foregroundStyle(Color(.label))
-            Text("Tap the + button to add your first countdown or cumulative day tracker.")
-                .font(.body)
-                .foregroundStyle(Color(.secondaryLabel))
+        VStack(spacing: 20) {
+            Image(systemName: "calendar.badge.plus")
+                .font(.system(size: 64, weight: .semibold))
+                .symbolRenderingMode(.hierarchical)
+                .foregroundStyle(Color.accentColor)
+
+            VStack(spacing: 8) {
+                Text("No entries yet")
+                    .font(.title2.weight(.semibold))
+                    .foregroundStyle(Color(.label))
+                Text("Use the plus button to start your first countdown or tracker.")
+                    .font(.body)
+                    .foregroundStyle(Color(.secondaryLabel))
+                    .multilineTextAlignment(.center)
+            }
         }
-        .padding(layout.emptyStatePadding)
+        .padding(.vertical, layout.emptyStatePadding)
+        .padding(.horizontal, layout.emptyStatePadding)
         .padding(.top, layout.emptyStateTopSpacing)
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity)
         .background(
-            RoundedRectangle(cornerRadius: 16)
-                .stroke(Color(.separator), style: StrokeStyle(lineWidth: 1, dash: [6]))
-                .background(RoundedRectangle(cornerRadius: 16).fill(Color(UIColor.systemBackground)))
+            ZStack {
+                RoundedRectangle(cornerRadius: 24, style: .continuous)
+                    .fill(Color(.secondarySystemGroupedBackground))
+                RoundedRectangle(cornerRadius: 24, style: .continuous)
+                    .fill(
+                        LinearGradient(colors: [
+                            Color.accentColor.opacity(0.22),
+                            Color.accentColor.opacity(0.08)
+                        ],
+                                       startPoint: .topLeading,
+                                       endPoint: .bottomTrailing)
+                    )
+                RoundedRectangle(cornerRadius: 24, style: .continuous)
+                    .strokeBorder(Color.accentColor.opacity(0.25), lineWidth: 1)
+            }
         )
+        .shadow(color: Color.black.opacity(0.08), radius: 20, x: 0, y: 12)
     }
 
     private var mainContent: some View {
@@ -166,8 +188,7 @@ struct HomeView: View {
         }
         ToolbarItem(placement: .navigationBarTrailing) {
             Button {
-                editingEntry = nil
-                activeDraft = EntryDraft(entryType: .countUp, startDate: Date(), timezone: .current)
+                startNewEntry()
             } label: {
                 Label("Add Entry", systemImage: "plus")
             }
@@ -202,6 +223,7 @@ struct HomeView: View {
             try store.upsert(from: draft)
             editingEntry = nil
             activeDraft = nil
+            AppReviewManager.registerSuccessfulSave()
         } catch {
             errorMessage = error.localizedDescription
             showErrorAlert = true
@@ -277,6 +299,15 @@ struct HomeView: View {
         if draft == nil {
             editingEntry = nil
         }
+    }
+
+    private func startNewEntry() {
+        editingEntry = nil
+        let timezone = TimeZone.current
+        let defaultDate = DayCounter.startOfDay(Date(), in: timezone)
+        activeDraft = EntryDraft(entryType: .countUp,
+                                 startDate: defaultDate,
+                                 timezone: timezone)
     }
 }
 

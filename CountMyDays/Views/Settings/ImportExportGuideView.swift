@@ -13,7 +13,7 @@ struct ImportExportGuideView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
                 sectionHeader(title: "Import JSON", systemImage: "tray.and.arrow.down")
-                Text("CountMyDays accepts JSON files that follow the v1 schema. Each entry can be a count-up or count-down with its own timezone.")
+                Text("CountMyDays imports JSON arrays where every item represents an entry. Each one can be a count-up or count-down with its own timezone.")
                     .foregroundStyle(.secondary)
 
                 if let sampleURL {
@@ -29,7 +29,7 @@ struct ImportExportGuideView: View {
                         .font(.headline)
                     checklistRow(text: "Include a title for every entry")
                     checklistRow(text: "Set `type` to `countUp` or `countDown`")
-                    checklistRow(text: "Provide the matching start/target date in ISO-8601 format")
+                    checklistRow(text: "Provide the matching `start` or `target` date in ISO-8601 format")
                     checklistRow(text: "Use an IANA timezone identifier, e.g. Asia/Shanghai")
                 }
 

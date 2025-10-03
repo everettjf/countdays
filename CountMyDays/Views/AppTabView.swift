@@ -14,8 +14,6 @@ struct AppTabView: View {
     @State private var showImportSummary = false
     @State private var showShareSheet = false
     @State private var exportedURL: URL?
-    @State private var showTextImport = false
-    @State private var pastedJSON: String = ""
     @State private var showErrorAlert = false
     @State private var errorMessage: String = ""
     @State private var showSettings = false
@@ -29,7 +27,7 @@ struct AppTabView: View {
     }
 
     private var adaptiveSheetCornerRadius: CGFloat {
-        supportsLiquidGlass ? 32 : 0
+        supportsLiquidGlass ? 32 : 20
     }
 
     var body: some View {
@@ -44,7 +42,6 @@ struct AppTabView: View {
         .fileImporter(isPresented: $showImporter, allowedContentTypes: [.json], onCompletion: handleFileImport)
         .sheet(isPresented: $showImportSummary, content: importSummarySheet)
         .sheet(isPresented: $showShareSheet, onDismiss: { exportedURL = nil }, content: shareSheet)
-        .sheet(isPresented: $showTextImport, content: textImportSheet)
         .sheet(isPresented: $showSettings, content: settingsSheet)
         .alert("Error", isPresented: $showErrorAlert, actions: {
             Button("OK", role: .cancel) { showErrorAlert = false }
@@ -90,11 +87,6 @@ struct AppTabView: View {
         .toolbarBackground(supportsLiquidGlass ? .hidden : .visible, for: .bottomBar)
     }
 
-    private func presentTextImport() {
-        pastedJSON = ""
-        showTextImport = true
-    }
-
     private func handleFileImport(_ result: Result<URL, Error>) {
         switch result {
         case .success(let url):
@@ -106,30 +98,6 @@ struct AppTabView: View {
             importSummary = ImportService.Summary(statuses: [status])
             showImportSummary = true
         }
-    }
-
-    private func handlePastedJSON(_ text: String) {
-        do {
-            let cleaned = text.trimmingCharacters(in: .whitespacesAndNewlines)
-            guard !cleaned.isEmpty else { throw TextImportError.empty }
-            guard let data = cleaned.data(using: .utf8) else { throw TextImportError.invalidEncoding }
-            let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".json")
-            try data.write(to: tempURL, options: .atomic)
-            let summary = ImportService(store: store).importEntries(from: tempURL)
-            importSummary = summary
-            showImportSummary = true
-        } catch TextImportError.empty {
-            errorMessage = "Paste some JSON before importing."
-            showErrorAlert = true
-        } catch TextImportError.invalidEncoding {
-            errorMessage = "The pasted text is not valid UTF-8."
-            showErrorAlert = true
-        } catch {
-            errorMessage = error.localizedDescription
-            showErrorAlert = true
-        }
-        showTextImport = false
-        pastedJSON = ""
     }
 
     private func exportEntries() {
@@ -168,33 +136,15 @@ struct AppTabView: View {
         }
     }
 
-    private func textImportSheet() -> some View {
-        TextImportSheet(initialText: pastedJSON) { text in
-            handlePastedJSON(text)
-        } onCancel: {
-            showTextImport = false
-            pastedJSON = ""
-        }
-        .presentationDetents(adaptiveSheetDetents)
-        .presentationCornerRadius(adaptiveSheetCornerRadius)
-        .presentationDragIndicator(.visible)
-    }
-
     @ViewBuilder
     private func settingsSheet() -> some View {
         SettingsView(onImport: {
             showImporter = true
         },
-                     onImportText: { presentTextImport() },
                      onExport: exportEntries)
         .presentationDetents(adaptiveSheetDetents)
         .presentationCornerRadius(adaptiveSheetCornerRadius)
         .presentationDragIndicator(.visible)
-    }
-
-    private enum TextImportError: Error {
-        case empty
-        case invalidEncoding
     }
 }
 

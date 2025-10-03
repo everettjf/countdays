@@ -9,7 +9,7 @@ struct ExportService {
     }()
 
     func export(entries: [Entry]) throws -> URL {
-        let payload = ExportPayload(entries: entries.map { ExportEntry(entry: $0) })
+        let payload = entries.map { ExportEntry(entry: $0) }
         let data = try encoder.encode(payload)
         let filename = "CountMyDays-export-\(ExportService.timestamp()).json"
         let url = FileManager.default.temporaryDirectory.appendingPathComponent(filename)
@@ -25,22 +25,12 @@ struct ExportService {
     }
 }
 
-private struct ExportPayload: Codable {
-    let version: Int
-    let entries: [ExportEntry]
-
-    init(entries: [ExportEntry]) {
-        self.version = 1
-        self.entries = entries
-    }
-}
-
 private struct ExportEntry: Codable {
     let id: UUID
     let title: String
     let type: String
-    let startDate: Date?
-    let targetDate: Date?
+    let start: Date?
+    let target: Date?
     let timezone: String
     let color: String
     let iconEmoji: String?
@@ -52,8 +42,8 @@ private struct ExportEntry: Codable {
         id = entry.id
         title = entry.title
         type = entry.entryType.rawValue
-        startDate = entry.startDate
-        targetDate = entry.targetDate
+        start = entry.startDate
+        target = entry.targetDate
         timezone = entry.timezoneID
         color = entry.colorHex
         iconEmoji = entry.iconEmoji

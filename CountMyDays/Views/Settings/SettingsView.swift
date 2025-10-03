@@ -6,7 +6,6 @@ struct SettingsView: View {
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     let onImport: () -> Void
-    let onImportText: () -> Void
     let onExport: () -> Void
 
     private var layout: SettingsLayout {
@@ -32,11 +31,6 @@ struct SettingsView: View {
                             dismissAnd(onImport)
                         } label: {
                             Label("Import JSON from File", systemImage: "tray.and.arrow.down")
-                        }
-                        Button {
-                            dismissAnd(onImportText)
-                        } label: {
-                            Label("Import from Clipboard", systemImage: "doc.on.doc")
                         }
                         Button {
                             dismissAnd(onExport)
@@ -68,10 +62,17 @@ struct SettingsView: View {
 
                 Section("About") {
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("CountMyDays")
+                        Text(Bundle.main.appDisplayName)
                             .font(.headline)
                         Text("A simple day counter for the moments that matter.")
                             .font(.footnote)
+                            .foregroundStyle(.secondary)
+                    }
+
+                    HStack {
+                        Label("Version", systemImage: "number")
+                        Spacer()
+                        Text(Bundle.main.formattedVersion)
                             .foregroundStyle(.secondary)
                     }
                 }
