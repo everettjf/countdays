@@ -39,6 +39,10 @@ enum TrendingCardPalettes {
         all.first?.primaryHex ?? "#606C38"
     }
 
+    static func randomPrimaryHex() -> String {
+        (all.randomElement()?.primaryHex).map(normalize) ?? defaultHex
+    }
+
     static func normalize(_ value: String) -> String {
         var sanitized = value.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
         if sanitized.hasPrefix("#") {

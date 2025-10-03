@@ -111,7 +111,11 @@ private extension ImportService {
         }
 
         var entry = Entry(id: identifier, title: title, entryType: type, timezoneID: timezoneID)
-        entry.colorHex = sanitize(color: dto.color, current: entry.colorHex)
+        if let providedColor = dto.color, !providedColor.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            entry.colorHex = sanitize(color: providedColor, fallback: entry.colorHex)
+        } else {
+            entry.colorHex = TrendingCardPalettes.randomPrimaryHex()
+        }
         entry.iconEmoji = dto.iconEmoji?.isEmpty == true ? nil : dto.iconEmoji
         entry.notes = dto.notes
         entry.isArchived = dto.isArchived ?? false
@@ -132,14 +136,12 @@ private extension ImportService {
         return entry
     }
 
-    func sanitize(color: String?, current: String) -> String {
-        guard let value = color, !value.isEmpty else { return current }
+    func sanitize(color: String?, fallback: String) -> String {
+        guard let value = color, !value.isEmpty else { return fallback }
         var hex = value.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
         if hex.hasPrefix("#") { hex.removeFirst() }
         let valid = Set("0123456789ABCDEF")
-        guard hex.count == 6, hex.allSatisfy({ valid.contains($0) }) else {
-            return current
-        }
+        guard hex.count == 6, hex.allSatisfy({ valid.contains($0) }) else { return fallback }
         return "#" + hex
     }
 }
