@@ -26,19 +26,16 @@ struct SettingsView: View {
                         Label("Import & Export Guide", systemImage: "questionmark.circle")
                     }
 
-                    Menu {
-                        Button {
-                            dismissAnd(onImport)
-                        } label: {
-                            Label("Import JSON from File", systemImage: "tray.and.arrow.down")
-                        }
-                        Button {
-                            dismissAnd(onExport)
-                        } label: {
-                            Label("Export JSON", systemImage: "square.and.arrow.up")
-                        }
+                    Button {
+                        dismissAnd(onImport)
                     } label: {
-                        Label("Manage Data", systemImage: "folder.badge.gear")
+                        Label("Import JSON", systemImage: "tray.and.arrow.down")
+                    }
+
+                    Button {
+                        dismissAnd(onExport)
+                    } label: {
+                        Label("Export JSON", systemImage: "square.and.arrow.up")
                     }
                 }
 
