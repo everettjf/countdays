@@ -109,13 +109,8 @@ struct HomeView: View {
     private var entriesGrid: some View {
         contentContainer {
             LazyVGrid(columns: gridColumns, alignment: .leading, spacing: layout.gridSpacing) {
-                if entries.isEmpty {
-                    emptyState
-                        .gridCellColumns(gridColumns.count)
-                } else {
-                    ForEach(entries) { entry in
-                        entryItem(for: entry)
-                    }
+                ForEach(entries) { entry in
+                    entryItem(for: entry)
                 }
             }
             .padding(.top, layout.gridTopPadding)
@@ -142,8 +137,7 @@ struct HomeView: View {
         }
         .padding(.vertical, layout.emptyStatePadding)
         .padding(.horizontal, layout.emptyStatePadding)
-        .padding(.top, layout.emptyStateTopSpacing)
-        .frame(maxWidth: .infinity)
+        .frame(maxWidth: layout.emptyStateMaxWidth)
         .background(
             ZStack {
                 RoundedRectangle(cornerRadius: 24, style: .continuous)
@@ -162,6 +156,7 @@ struct HomeView: View {
             }
         )
         .shadow(color: Color.black.opacity(0.08), radius: 20, x: 0, y: 12)
+        .frame(maxWidth: .infinity)
     }
 
     private var mainContent: some View {
@@ -169,10 +164,19 @@ struct HomeView: View {
             Color(UIColor.systemGroupedBackground).ignoresSafeArea()
             VStack(spacing: 0) {
                 header
-                ScrollView {
-                    entriesGrid
+                
+                if entries.isEmpty {
+                    VStack {
+                        Spacer()
+                        emptyState
+                        Spacer()
+                    }
+                } else {
+                    ScrollView {
+                        entriesGrid
+                    }
+                    .scrollIndicators(.hidden)
                 }
-                .scrollIndicators(.hidden)
             }
         }
     }
@@ -268,7 +272,7 @@ struct HomeView: View {
                 delete(entry: entry)
             }
         }
-        .presentationDetents(Set(layout.sheetDetents))
+        .presentationDetents(Set(layout.sheetDetents), selection: .constant(layout.defaultSheetDetent))
         .presentationCornerRadius(layout.sheetCornerRadius)
         .presentationDragIndicator(.visible)
     }
@@ -350,12 +354,13 @@ private struct LayoutMetrics {
     let gridTopPadding: CGFloat
     let gridBottomPadding: CGFloat
     let emptyStatePadding: CGFloat
-    let emptyStateTopSpacing: CGFloat
+    let emptyStateMaxWidth: CGFloat
     let minColumnWidth: CGFloat
     let maxColumnWidth: CGFloat
     let contentAlignment: Alignment
     let showsFilterPicker: Bool
     let sheetDetents: [PresentationDetent]
+    let defaultSheetDetent: PresentationDetent
     let sheetCornerRadius: CGFloat
 
     init(horizontalSizeClass: UserInterfaceSizeClass?,
@@ -377,16 +382,18 @@ private struct LayoutMetrics {
         gridTopPadding = useWide ? 8 : 12
         gridBottomPadding = useWide ? 140 : 84
         emptyStatePadding = useWide ? 28 : 20
-        emptyStateTopSpacing = useWide ? 48 : 32
+        emptyStateMaxWidth = useWide ? 500 : 400
         minColumnWidth = useWide ? 320 : 260
         maxColumnWidth = useWide ? 420 : 360
         contentAlignment = useWide ? .center : .leading
         self.showsFilterPicker = showsFilterPicker
         if useWide {
-            sheetDetents = [.fraction(0.66), .fraction(0.9)]
+            sheetDetents = [.fraction(0.75), .fraction(0.9), .large]
+            defaultSheetDetent = .large
             sheetCornerRadius = 32
         } else {
             sheetDetents = [.large]
+            defaultSheetDetent = .large
             sheetCornerRadius = 24
         }
     }

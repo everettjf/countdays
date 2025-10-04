@@ -119,8 +119,8 @@ private struct SettingsLayout {
 
     init(horizontalSizeClass: UserInterfaceSizeClass?, dynamicTypeSize: DynamicTypeSize) {
         let useWideLayout = horizontalSizeClass == .regular && !dynamicTypeSize.isAccessibilitySize
-        contentWidth = useWideLayout ? 520 : nil
-        horizontalPadding = useWideLayout ? 24 : 0
+        contentWidth = useWideLayout ? 900 : nil
+        horizontalPadding = useWideLayout ? 40 : 0
     }
 }
 

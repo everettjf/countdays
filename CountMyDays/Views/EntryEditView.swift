@@ -210,10 +210,10 @@ private struct EditLayout {
 
     init(horizontalSizeClass: UserInterfaceSizeClass?, dynamicTypeSize: DynamicTypeSize) {
         let useWideLayout = horizontalSizeClass == .regular && !dynamicTypeSize.isAccessibilitySize
-        contentWidth = useWideLayout ? 620 : nil
-        horizontalPadding = useWideLayout ? 24 : 0
-        colorColumnCount = useWideLayout ? 7 : 5
-        colorGridSpacing = useWideLayout ? 14 : 12
+        contentWidth = useWideLayout ? 900 : nil
+        horizontalPadding = useWideLayout ? 40 : 0
+        colorColumnCount = useWideLayout ? 8 : 5
+        colorGridSpacing = useWideLayout ? 16 : 12
     }
 }
 

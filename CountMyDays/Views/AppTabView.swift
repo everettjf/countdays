@@ -22,7 +22,7 @@ struct AppTabView: View {
     }
 
     private var adaptiveSheetDetents: Set<PresentationDetent> {
-        supportsLiquidGlass ? [.fraction(0.55), .fraction(0.8), .large] : [.large]
+        supportsLiquidGlass ? [.fraction(0.75), .fraction(0.9), .large] : [.large]
     }
 
     private var adaptiveSheetCornerRadius: CGFloat {
@@ -140,7 +140,7 @@ struct AppTabView: View {
             showImporter = true
         },
                      onExport: exportEntries)
-        .presentationDetents(adaptiveSheetDetents)
+        .presentationDetents(adaptiveSheetDetents, selection: .constant(.large))
         .presentationCornerRadius(adaptiveSheetCornerRadius)
         .presentationDragIndicator(.visible)
     }
