@@ -128,6 +128,12 @@ final class EntryStore: ObservableObject {
         if let target = copy.targetDate {
             copy.targetDate = DayCounter.startOfDay(target, in: timezone)
         }
+        if let rangeStart = copy.rangeStart {
+            copy.rangeStart = DayCounter.startOfDay(rangeStart, in: timezone)
+        }
+        if let rangeEnd = copy.rangeEnd {
+            copy.rangeEnd = DayCounter.startOfDay(rangeEnd, in: timezone)
+        }
         copy.stampTimestamps(asNew: true)
         allEntries.append(copy)
         persistSilently()

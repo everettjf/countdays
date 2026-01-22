@@ -64,6 +64,30 @@ struct EntryEditView: View {
                     }
                 }
 
+                Section("Advanced") {
+                    Toggle("Use Date Range", isOn: rangeEnabled)
+
+                    if rangeEnabled.wrappedValue {
+                        DatePicker("Range Start", selection: rangeStartBinding, displayedComponents: [.date])
+                        DatePicker("Range End", selection: rangeEndBinding, displayedComponents: [.date])
+
+                        Picker("Outside Range", selection: $draft.outOfRangeBehavior) {
+                            ForEach(OutOfRangeBehavior.allCases) { behavior in
+                                Text(behavior.label).tag(behavior)
+                            }
+                        }
+                        .pickerStyle(.segmented)
+                    }
+
+                    if draft.entryType == .countDown {
+                        Picker("Repeat", selection: $draft.repeatRule) {
+                            ForEach(RepeatRule.allCases) { rule in
+                                Text(rule.label).tag(rule)
+                            }
+                        }
+                    }
+                }
+
                 Section("Appearance") {
                     VStack(alignment: .leading, spacing: 12) {
                         Text("Color")
@@ -152,6 +176,7 @@ struct EntryEditView: View {
             case .countUp:
                 if draft.startDate == nil { draft.startDate = Date() }
                 draft.targetDate = nil
+                draft.repeatRule = .none
             case .countDown:
                 if draft.targetDate == nil { draft.targetDate = Date().addingTimeInterval(86_400) }
                 draft.startDate = nil
@@ -174,6 +199,36 @@ struct EntryEditView: View {
         case .countDown:
             return draft.targetDate != nil
         }
+    }
+
+    private var rangeEnabled: Binding<Bool> {
+        Binding(get: {
+            draft.rangeStart != nil || draft.rangeEnd != nil
+        }, set: { enabled in
+            if enabled {
+                if draft.rangeStart == nil {
+                    draft.rangeStart = draft.entryType == .countUp ? (draft.startDate ?? Date()) : Date()
+                }
+                if draft.rangeEnd == nil {
+                    if draft.entryType == .countDown, let target = draft.targetDate {
+                        draft.rangeEnd = target
+                    } else {
+                        draft.rangeEnd = Date().addingTimeInterval(86_400 * 7)
+                    }
+                }
+            } else {
+                draft.rangeStart = nil
+                draft.rangeEnd = nil
+            }
+        })
+    }
+
+    private var rangeStartBinding: Binding<Date> {
+        Binding($draft.rangeStart, replacingNilWith: Date())
+    }
+
+    private var rangeEndBinding: Binding<Date> {
+        Binding($draft.rangeEnd, replacingNilWith: Date())
     }
 
     private func save() {

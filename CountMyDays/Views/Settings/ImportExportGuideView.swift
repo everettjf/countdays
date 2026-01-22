@@ -31,6 +31,7 @@ struct ImportExportGuideView: View {
                     checklistRow(text: "Set `type` to `countUp` or `countDown`")
                     checklistRow(text: "Provide the matching `start` or `target` date in ISO-8601 format")
                     checklistRow(text: "Use an IANA timezone identifier, e.g. Asia/Shanghai")
+                    checklistRow(text: "Optional: `rangeStart`, `rangeEnd`, `outOfRangeBehavior`, `repeatRule`")
                 }
 
                 Button {

@@ -6,6 +6,10 @@ struct EntrySnapshot: Identifiable {
     let entryType: EntryType
     let startDate: Date?
     let targetDate: Date?
+    let rangeStart: Date?
+    let rangeEnd: Date?
+    let outOfRangeBehavior: OutOfRangeBehavior
+    let repeatRule: RepeatRule
     let timezone: TimeZone
     let colorHex: String
     let iconEmoji: String?
@@ -18,6 +22,10 @@ struct EntrySnapshot: Identifiable {
          entryType: EntryType,
          startDate: Date?,
          targetDate: Date?,
+         rangeStart: Date?,
+         rangeEnd: Date?,
+         outOfRangeBehavior: OutOfRangeBehavior,
+         repeatRule: RepeatRule,
          timezone: TimeZone,
          colorHex: String,
          iconEmoji: String?,
@@ -29,6 +37,10 @@ struct EntrySnapshot: Identifiable {
         self.entryType = entryType
         self.startDate = startDate
         self.targetDate = targetDate
+        self.rangeStart = rangeStart
+        self.rangeEnd = rangeEnd
+        self.outOfRangeBehavior = outOfRangeBehavior
+        self.repeatRule = repeatRule
         self.timezone = timezone
         self.colorHex = colorHex
         self.iconEmoji = iconEmoji
@@ -43,6 +55,10 @@ struct EntrySnapshot: Identifiable {
         entryType = entry.entryType
         startDate = entry.startDate
         targetDate = entry.targetDate
+        rangeStart = entry.rangeStart
+        rangeEnd = entry.rangeEnd
+        outOfRangeBehavior = entry.outOfRangeBehavior
+        repeatRule = entry.repeatRule
         timezone = entry.timezone
         colorHex = entry.colorHex
         iconEmoji = entry.iconEmoji
@@ -57,6 +73,10 @@ struct EntrySnapshot: Identifiable {
         entryType = draft.entryType
         startDate = draft.startDate
         targetDate = draft.targetDate
+        rangeStart = draft.rangeStart
+        rangeEnd = draft.rangeEnd
+        outOfRangeBehavior = draft.outOfRangeBehavior
+        repeatRule = draft.repeatRule
         timezone = draft.timezone
         colorHex = draft.colorHex
         iconEmoji = draft.iconEmoji

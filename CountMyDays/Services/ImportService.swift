@@ -132,6 +132,23 @@ private extension ImportService {
             entry.startDate = nil
         }
 
+        entry.rangeStart = dto.rangeStart.map { DayCounter.startOfDay($0, in: timezone) }
+        entry.rangeEnd = dto.rangeEnd.map { DayCounter.startOfDay($0, in: timezone) }
+        if let start = entry.rangeStart, let end = entry.rangeEnd, start > end {
+            entry.rangeStart = end
+            entry.rangeEnd = start
+        }
+
+        if let behavior = dto.outOfRangeBehavior?.lowercased(),
+           let parsed = OutOfRangeBehavior(rawValue: behavior) {
+            entry.outOfRangeBehavior = parsed
+        }
+
+        if type == .countDown, let rule = dto.repeatRule?.lowercased(),
+           let parsed = RepeatRule(rawValue: rule) {
+            entry.repeatRule = parsed
+        }
+
         entry.stampTimestamps(asNew: true)
         return entry
     }
@@ -171,6 +188,10 @@ private struct ImportEntryDTO: Decodable {
     let type: String?
     let start: Date?
     let target: Date?
+    let rangeStart: Date?
+    let rangeEnd: Date?
+    let outOfRangeBehavior: String?
+    let repeatRule: String?
     let timezone: String?
     let color: String?
     let iconEmoji: String?
@@ -186,6 +207,12 @@ private struct ImportEntryDTO: Decodable {
         case target
         case startDate
         case targetDate
+        case rangeStart
+        case rangeEnd
+        case outOfRangeBehavior
+        case rangeBehavior
+        case repeatRule
+        case `repeat`
         case timezone
         case color
         case colorHex
@@ -205,6 +232,10 @@ private struct ImportEntryDTO: Decodable {
         type = try container.decodeIfPresent(String.self, forKey: .type)
         start = try container.decodeIfPresent(Date.self, forKey: .start) ?? container.decodeIfPresent(Date.self, forKey: .startDate)
         target = try container.decodeIfPresent(Date.self, forKey: .target) ?? container.decodeIfPresent(Date.self, forKey: .targetDate)
+        rangeStart = try container.decodeIfPresent(Date.self, forKey: .rangeStart)
+        rangeEnd = try container.decodeIfPresent(Date.self, forKey: .rangeEnd)
+        outOfRangeBehavior = try container.decodeIfPresent(String.self, forKey: .outOfRangeBehavior) ?? container.decodeIfPresent(String.self, forKey: .rangeBehavior)
+        repeatRule = try container.decodeIfPresent(String.self, forKey: .repeatRule) ?? container.decodeIfPresent(String.self, forKey: .repeat)
         timezone = try container.decodeIfPresent(String.self, forKey: .timezone)
         color = try container.decodeIfPresent(String.self, forKey: .color) ?? container.decodeIfPresent(String.self, forKey: .colorHex)
         iconEmoji = try container.decodeIfPresent(String.self, forKey: .iconEmoji) ?? container.decodeIfPresent(String.self, forKey: .icon)

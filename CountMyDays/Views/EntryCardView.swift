@@ -16,16 +16,33 @@ struct EntryCardView: View {
     private var secondaryColor: Color { palette.secondaryTextColor }
 
     private var dateLine: String {
-        guard let date = snapshot.entryType == .countUp ? snapshot.startDate : snapshot.targetDate else { return "--" }
+        let date = snapshot.entryType == .countUp ? snapshot.startDate : DayCounter.effectiveTargetDate(for: snapshot, now: now)
+        guard let date else { return "--" }
         let formatter = DateFormatters.cardDateFormatter(for: snapshot.timezone)
         return formatter.string(from: date)
     }
 
     private var dateLabel: String {
-        snapshot.entryType == .countUp ? "Start Date" : "Target Date"
+        if snapshot.entryType == .countDown && snapshot.repeatRule != .none {
+            return "Next Target"
+        }
+        return snapshot.entryType == .countUp ? "Start Date" : "Target Date"
     }
 
     private var days: Int { DayCounter.days(for: snapshot, now: now) }
+
+    private var rangeLine: String? {
+        guard snapshot.rangeStart != nil || snapshot.rangeEnd != nil else { return nil }
+        let formatter = DateFormatters.cardDateFormatter(for: snapshot.timezone)
+        let startText = snapshot.rangeStart.map { formatter.string(from: $0) } ?? "--"
+        let endText = snapshot.rangeEnd.map { formatter.string(from: $0) } ?? "--"
+        return "Range: \(startText) - \(endText)"
+    }
+
+    private var repeatLine: String? {
+        guard snapshot.entryType == .countDown, snapshot.repeatRule != .none else { return nil }
+        return "Repeat: \(snapshot.repeatRule.label)"
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -42,6 +59,16 @@ struct EntryCardView: View {
                     Text("\(dateLabel): \(dateLine)")
                         .font(.system(size: 12, weight: .bold, design: .monospaced))
                         .foregroundStyle(secondaryColor)
+                    if let rangeLine {
+                        Text(rangeLine)
+                            .font(.system(size: 11, weight: .medium, design: .monospaced))
+                            .foregroundStyle(secondaryColor)
+                    }
+                    if let repeatLine {
+                        Text(repeatLine)
+                            .font(.system(size: 11, weight: .medium, design: .monospaced))
+                            .foregroundStyle(secondaryColor)
+                    }
                 }
                 Spacer(minLength: 8)
                 VStack(alignment: .trailing, spacing: 6) {
@@ -359,6 +386,10 @@ private extension UIColor {
         entryType: .countDown,
         startDate: nil,
         targetDate: Date().addingTimeInterval(86400 * 32),
+        rangeStart: nil,
+        rangeEnd: nil,
+        outOfRangeBehavior: .zero,
+        repeatRule: .monthly,
         timezone: .current,
         colorHex: TrendingCardPalettes.defaultHex,
         iconEmoji: "🌞",

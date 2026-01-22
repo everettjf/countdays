@@ -31,6 +31,10 @@ private struct ExportEntry: Codable {
     let type: String
     let start: Date?
     let target: Date?
+    let rangeStart: Date?
+    let rangeEnd: Date?
+    let outOfRangeBehavior: String
+    let repeatRule: String
     let timezone: String
     let color: String
     let icon: String?
@@ -44,6 +48,10 @@ private struct ExportEntry: Codable {
         type = entry.entryType.rawValue
         start = entry.startDate
         target = entry.targetDate
+        rangeStart = entry.rangeStart
+        rangeEnd = entry.rangeEnd
+        outOfRangeBehavior = entry.outOfRangeBehavior.rawValue
+        repeatRule = entry.repeatRule.rawValue
         timezone = entry.timezoneID
         color = entry.colorHex
         icon = entry.iconEmoji
@@ -60,6 +68,10 @@ private extension ExportEntry {
         case type
         case start
         case target
+        case rangeStart
+        case rangeEnd
+        case outOfRangeBehavior
+        case repeatRule
         case timezone
         case color
         case icon

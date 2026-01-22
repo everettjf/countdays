@@ -6,6 +6,10 @@ struct EntryDraft: Identifiable, Equatable {
     var entryType: EntryType
     var startDate: Date?
     var targetDate: Date?
+    var rangeStart: Date?
+    var rangeEnd: Date?
+    var outOfRangeBehavior: OutOfRangeBehavior
+    var repeatRule: RepeatRule
     var timezone: TimeZone
     var colorHex: String
     var iconEmoji: String?
@@ -18,6 +22,10 @@ struct EntryDraft: Identifiable, Equatable {
          entryType: EntryType = .countUp,
          startDate: Date? = nil,
          targetDate: Date? = nil,
+         rangeStart: Date? = nil,
+         rangeEnd: Date? = nil,
+         outOfRangeBehavior: OutOfRangeBehavior = .zero,
+         repeatRule: RepeatRule = .none,
          timezone: TimeZone = .current,
          colorHex: String = TrendingCardPalettes.defaultHex,
          iconEmoji: String? = nil,
@@ -29,6 +37,10 @@ struct EntryDraft: Identifiable, Equatable {
         self.entryType = entryType
         self.startDate = startDate
         self.targetDate = targetDate
+        self.rangeStart = rangeStart
+        self.rangeEnd = rangeEnd
+        self.outOfRangeBehavior = outOfRangeBehavior
+        self.repeatRule = repeatRule
         self.timezone = timezone
         self.colorHex = colorHex
         self.iconEmoji = iconEmoji
@@ -43,6 +55,10 @@ struct EntryDraft: Identifiable, Equatable {
         entryType = entry.entryType
         startDate = entry.startDate
         targetDate = entry.targetDate
+        rangeStart = entry.rangeStart
+        rangeEnd = entry.rangeEnd
+        outOfRangeBehavior = entry.outOfRangeBehavior
+        repeatRule = entry.repeatRule
         timezone = entry.timezone
         colorHex = entry.colorHex
         iconEmoji = entry.iconEmoji
@@ -67,6 +83,14 @@ extension EntryDraft {
         let tz = timezone
         entry.startDate = entryType == .countUp ? startDate.map { DayCounter.startOfDay($0, in: tz) } : nil
         entry.targetDate = entryType == .countDown ? targetDate.map { DayCounter.startOfDay($0, in: tz) } : nil
+        entry.repeatRule = entryType == .countDown ? repeatRule : .none
+        entry.rangeStart = rangeStart.map { DayCounter.startOfDay($0, in: tz) }
+        entry.rangeEnd = rangeEnd.map { DayCounter.startOfDay($0, in: tz) }
+        if let start = entry.rangeStart, let end = entry.rangeEnd, start > end {
+            entry.rangeStart = end
+            entry.rangeEnd = start
+        }
+        entry.outOfRangeBehavior = outOfRangeBehavior
         entry.colorHex = colorHex.isEmpty ? TrendingCardPalettes.defaultHex : colorHex
         entry.iconEmoji = iconEmoji?.isEmpty == true ? nil : iconEmoji
         entry.notes = notes?.isEmpty == true ? nil : notes
