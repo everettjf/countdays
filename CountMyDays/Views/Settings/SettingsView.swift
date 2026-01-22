@@ -18,6 +18,7 @@ struct SettingsView: View {
 
     private let supportEmailURL = URL(string: "mailto:xnuapp@gmail.com")
     private let websiteURL = URL(string: "https://xnu.app/countmydays")
+    private let moreAppsURL = URL(string: "https://xnu.app")!
 
     var body: some View {
         NavigationStack {
@@ -69,7 +70,17 @@ struct SettingsView: View {
                         Text(Bundle.main.formattedVersion)
                             .foregroundStyle(.secondary)
                     }
-                    
+
+                    Button {
+                        dismissAndOpen(moreAppsURL)
+                    } label: {
+                        HStack {
+                            Label("More Apps", systemImage: "square.grid.2x2")
+                            Spacer()
+                            Text("https://xnu.app")
+                                .foregroundStyle(.secondary)
+                        }
+                    }
                     
                     if !store.allItems().isEmpty {
                         Button(role: .cancel) {
@@ -79,6 +90,7 @@ struct SettingsView: View {
                         }
                     }
                 }
+
             }
             .navigationTitle("Settings")
             .toolbar {
