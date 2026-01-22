@@ -10,7 +10,7 @@ struct EntryEditView: View {
     var onDelete: (() -> Void)?
 
     @State private var showingTimeZonePicker = false
-    @FocusState private var focusTitle: Bool
+    @FocusState private var focusedField: FocusedField?
     @State private var showDeleteConfirmation = false
 
     private let colorPalette: [TrendingCardPalette] = TrendingCardPalettes.all
@@ -34,7 +34,7 @@ struct EntryEditView: View {
                 Section("Details") {
                     TextField("Title", text: $draft.title)
                         .font(.system(.body, design: .rounded))
-                        .focused($focusTitle)
+                        .focused($focusedField, equals: .title)
                     Picker("Type", selection: $draft.entryType) {
                         ForEach(EntryType.allCases) { type in
                             Text(type.label).tag(type)
@@ -76,7 +76,7 @@ struct EntryEditView: View {
                                 Text(behavior.label).tag(behavior)
                             }
                         }
-                        .pickerStyle(.segmented)
+                        .pickerStyle(.menu)
                     }
 
                     if draft.entryType == .countDown {
@@ -85,6 +85,7 @@ struct EntryEditView: View {
                                 Text(rule.label).tag(rule)
                             }
                         }
+                        .pickerStyle(.menu)
                     }
                 }
 
@@ -121,6 +122,7 @@ struct EntryEditView: View {
                             .foregroundColor(.secondary)
                         TextEditor(text: Binding($draft.notes, replacingNilWith: ""))
                             .frame(minHeight: 80)
+                            .focused($focusedField, equals: .notes)
                     }
                     .padding(.vertical, 4)
                 }
@@ -142,6 +144,12 @@ struct EntryEditView: View {
             }
             .formStyle(.grouped)
             .modifier(CenteredFormModifier(layout: layout))
+            .contentShape(Rectangle())
+            .simultaneousGesture(
+                TapGesture().onEnded {
+                    hideKeyboard()
+                }
+            )
             .navigationTitle(isNew ? "New Entry" : "Edit Entry")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -159,7 +167,7 @@ struct EntryEditView: View {
             }
         }
         .onAppear {
-            focusTitle = draft.title.isEmpty
+            focusedField = isNew ? .title : nil
         }
 
         .alert("Delete Entry?", isPresented: $showDeleteConfirmation) {
@@ -235,6 +243,18 @@ struct EntryEditView: View {
         onSave(draft)
         dismiss()
     }
+
+    private func hideKeyboard() {
+        focusedField = nil
+        #if canImport(UIKit)
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+        #endif
+    }
+}
+
+private enum FocusedField {
+    case title
+    case notes
 }
 
 private extension Binding where Value == Date {
