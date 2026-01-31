@@ -3,7 +3,7 @@
 CountMyDays is a SwiftUI iOS app for tracking countdowns and cumulative day counts. Create entries for important dates, track progress over time, and keep everything tidy with pinning, archiving, and export/import.
 
 
-[!Screenshot](/screenshot.png)
+![Screenshot](screenshot.png)
 
 ## Features
 - Countdown and cumulative (count up) trackers.
