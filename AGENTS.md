@@ -1,5 +1,8 @@
 # Repository Guidelines
 
+## Language
+- Use English for all documentation and user-facing text.
+
 ## Project Structure & Module Organization
 - `CountMyDays/`: main Swift/SwiftUI source.
 - `CountMyDays/Views/`: UI screens and reusable view components.
@@ -24,6 +27,10 @@
 - Properties/functions: `lowerCamelCase` (e.g., `startDate`).
 - Prefer SwiftUI view files grouped by feature under `Views/`.
 - No lint/format tooling detected; keep formatting consistent with existing files.
+
+## Documentation
+- Keep `README.md` accurate when behavior, build steps, or features change.
+- Document any data model changes or migrations.
 
 ## Testing Guidelines
 - No tests currently in the repository.
