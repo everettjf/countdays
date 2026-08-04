@@ -80,13 +80,9 @@ private extension DayCounter {
             effectiveTarget = rangeEnd
         }
 
-        if effectiveNow >= effectiveTarget {
-            let seconds = effectiveTarget.timeIntervalSince(effectiveNow)
-            return Int(ceil(seconds / 86_400.0))
-        }
-
         let components = calendar.dateComponents([.day], from: effectiveNow, to: effectiveTarget)
-        return max(0, components.day ?? 0)
+        let dayDifference = components.day ?? 0
+        return effectiveNow >= effectiveTarget ? min(0, dayDifference) : max(0, dayDifference)
     }
 
     static func normalizedRange(start: Date?, end: Date?, in timeZone: TimeZone) -> (start: Date?, end: Date?) {
