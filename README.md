@@ -45,4 +45,4 @@ Open `CountMyDays.xcodeproj` in Xcode and select a simulator/device.
 - Include screenshots or screen recordings for UI changes.
 
 ## Star History
-[![Star History Chart](https://api.star-history.com/svg?repos=everettjf/CountMyDays&type=Date)](https://star-history.com/#everettjf/CountMyDays&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=everettjf/countdays&type=Date)](https://star-history.com/#everettjf/countdays&Date)

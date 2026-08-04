@@ -48,3 +48,10 @@
 ## Configuration & Data Notes
 - Time zone handling is centralized in `CountMyDays/Services/DayCounter.swift`.
 - Import/export formats are defined in `CountMyDays/Services/ImportService.swift` and `CountMyDays/Services/ExportService.swift`.
+
+## Current Product Priorities
+
+- Establish a `CountMyDaysTests` target before broad feature work.
+- Prioritize deterministic coverage for time zones, daylight-saving transitions, leap days, month-end/year-end repeat rules, inclusive day counting, and archived/pinned ordering.
+- Treat the exported JSON shape as a versioned compatibility contract. Imports must validate first and must not partially overwrite existing data after an error.
+- Measure notification rescheduling and launch-time store loading when the dataset grows; avoid recomputing all derived day counts on unrelated view updates.
