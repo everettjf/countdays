@@ -13,12 +13,12 @@ struct CardNumberView: View {
                 .lineLimit(1)
                 .minimumScaleFactor(0.5)
                 .allowsTightening(true)
-                .foregroundColor(textColor)
+                .foregroundStyle(textColor)
             Text(label.uppercased())
                 .font(.system(.caption2, design: .monospaced).weight(.semibold))
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
-                .foregroundColor(secondaryTextColor)
+                .foregroundStyle(secondaryTextColor)
         }
         .padding(.horizontal, 18)
         .padding(.vertical, 10)
@@ -27,52 +27,24 @@ struct CardNumberView: View {
 
     private var background: some View {
         RoundedRectangle(cornerRadius: 14, style: .continuous)
-            .fill(backgroundGradient)
+            .fill(Color(UIColor.tertiarySystemGroupedBackground))
             .overlay(
                 RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .stroke(borderGradient, lineWidth: 1.4)
+                    .fill(color.opacity(colorScheme == .dark ? 0.11 : 0.065))
             )
             .overlay(
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .stroke(highlightColor, lineWidth: 1)
-                    .blur(radius: 1)
-                    .opacity(0.6)
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .stroke(color.opacity(colorScheme == .dark ? 0.22 : 0.14), lineWidth: 1)
             )
-            .shadow(color: color.opacity(0.22), radius: 12, x: 0, y: 6)
-    }
-
-    private var backgroundGradient: LinearGradient {
-        LinearGradient(
-            colors: [
-                color.opacity(colorScheme == .dark ? 0.45 : 0.35),
-                color.opacity(colorScheme == .dark ? 0.25 : 0.2)
-            ],
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
-        )
-    }
-
-    private var borderGradient: LinearGradient {
-        LinearGradient(
-            colors: [
-                color.opacity(0.65),
-                color.opacity(0.3)
-            ],
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
-        )
+            .shadow(color: Color.black.opacity(colorScheme == .dark ? 0.12 : 0.04), radius: 6, x: 0, y: 3)
     }
 
     private var textColor: Color {
-        Color.white
+        .primary
     }
 
     private var secondaryTextColor: Color {
-        Color.white.opacity(0.75)
-    }
-
-    private var highlightColor: Color {
-        color.opacity(colorScheme == .dark ? 0.45 : 0.35)
+        .secondary
     }
 }
 

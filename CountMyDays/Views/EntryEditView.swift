@@ -97,23 +97,27 @@ struct EntryEditView: View {
 
                         LazyVGrid(columns: colorGridColumns, spacing: layout.colorGridSpacing) {
                             ForEach(colorPalette) { palette in
-                                Circle()
-                                    .fill(LinearGradient(
-                                        colors: palette.colors.map { Color(hex: $0) },
-                                        startPoint: .topLeading,
-                                        endPoint: .bottomTrailing
-                                    ))
-                                    .frame(width: 36, height: 36)
-                                    .overlay(
-                                        Circle()
-                                            .stroke(
-                                                Color.white.opacity(isSelected(palette) ? 0.9 : 0.2),
-                                                lineWidth: isSelected(palette) ? 3 : 1
-                                            )
-                                    )
-                                    .onTapGesture {
-                                        draft.colorHex = palette.primaryHex
-                                    }
+                                Button {
+                                    draft.colorHex = palette.primaryHex
+                                } label: {
+                                    Circle()
+                                        .fill(LinearGradient(
+                                            colors: palette.colors.map { Color(hex: $0) },
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        ))
+                                        .frame(width: 36, height: 36)
+                                        .overlay(
+                                            Circle()
+                                                .stroke(
+                                                    Color.white.opacity(isSelected(palette) ? 0.9 : 0.2),
+                                                    lineWidth: isSelected(palette) ? 3 : 1
+                                                )
+                                        )
+                                }
+                                .buttonStyle(.plain)
+                                .accessibilityLabel(palette.name)
+                                .accessibilityValue(isSelected(palette) ? "Selected" : "Not selected")
                             }
                         }
 
