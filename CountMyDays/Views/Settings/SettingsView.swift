@@ -18,7 +18,6 @@ struct SettingsView: View {
 
     private let supportEmailURL = URL(string: "mailto:xnuapp@gmail.com")
     private let websiteURL = URL(string: "https://xnu.app/countmydays")
-    private let moreAppsURL = URL(string: "https://xnu.app")!
 
     var body: some View {
         NavigationStack {
@@ -71,17 +70,6 @@ struct SettingsView: View {
                             .foregroundStyle(.secondary)
                     }
 
-                    Button {
-                        dismissAndOpen(moreAppsURL)
-                    } label: {
-                        HStack {
-                            Label("More Apps", systemImage: "square.grid.2x2")
-                            Spacer()
-                            Text("https://xnu.app")
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-                    
                     if !store.allItems().isEmpty {
                         Button(role: .cancel) {
                             showClearAllSheet = true
@@ -89,6 +77,12 @@ struct SettingsView: View {
                             Label("Delete All Entries", systemImage: "trash")
                         }
                     }
+                }
+
+                Section("More Apps") {
+                    appStoreButton("BSSID SCAN", icon: "wifi", url: "https://apps.apple.com/us/app/bssid-scan/id1442586100")
+                    appStoreButton("Remote Keyboard", icon: "keyboard", url: "https://apps.apple.com/us/app/remote-keyboard/id1474458879")
+                    appStoreButton("ScriptWidget", icon: "curlybraces.square", url: "https://apps.apple.com/us/app/scriptwidget/id1555600758")
                 }
 
             }
@@ -121,6 +115,21 @@ struct SettingsView: View {
         dismiss()
         DispatchQueue.main.async {
             openURL(url)
+        }
+    }
+
+    private func appStoreButton(_ name: String, icon: String, url: String) -> some View {
+        Button {
+            if let destination = URL(string: url) {
+                openURL(destination)
+            }
+        } label: {
+            HStack {
+                Label(name, systemImage: icon)
+                Spacer()
+                Image(systemName: "arrow.up.right.square")
+                    .foregroundStyle(.secondary)
+            }
         }
     }
 }
