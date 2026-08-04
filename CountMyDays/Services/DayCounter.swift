@@ -52,7 +52,7 @@ private extension DayCounter {
             return 0
         }
 
-        let calendar = calendar(for: TimeZone.current)
+        let calendar = calendar(for: snapshot.timezone)
         let components = calendar.dateComponents([.day], from: effectiveStart, to: effectiveNow)
         return components.day ?? 0
     }
