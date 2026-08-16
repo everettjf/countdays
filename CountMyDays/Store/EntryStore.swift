@@ -22,10 +22,14 @@ final class EntryStore: ObservableObject {
     @Published private(set) var entries: [Entry] = []
 
     private var allEntries: [Entry] = []
+    private var deletedAt: [UUID: Date] = [:]
     private var filter: Filter = .all
     private var searchText: String = ""
+    private var iCloudObserver: AnyCancellable?
 
     private let storageURL: URL
+    private let iCloudStore: NSUbiquitousKeyValueStore
+    private static let iCloudSnapshotKey = "entries.sync-snapshot.v1"
     private let encoder: JSONEncoder = {
         let encoder = JSONEncoder()
         encoder.dateEncodingStrategy = .iso8601
@@ -38,7 +42,11 @@ final class EntryStore: ObservableObject {
         return decoder
     }()
 
-    init(fileManager: FileManager = .default) {
+    init(
+        fileManager: FileManager = .default,
+        iCloudStore: NSUbiquitousKeyValueStore = .default
+    ) {
+        self.iCloudStore = iCloudStore
         let folder = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first ?? FileManager.default.temporaryDirectory
         let directory = folder.appendingPathComponent("CountMyDays", isDirectory: true)
         if !fileManager.fileExists(atPath: directory.path) {
@@ -46,6 +54,7 @@ final class EntryStore: ObservableObject {
         }
         storageURL = directory.appendingPathComponent("entries.json")
         load()
+        startICloudSync()
     }
 
     func set(filter: Filter) {
@@ -89,6 +98,7 @@ final class EntryStore: ObservableObject {
 
     func delete(_ entry: Entry) throws {
         allEntries.removeAll { $0.id == entry.id }
+        deletedAt[entry.id] = Date()
         try save()
         applyFilters()
     }
@@ -141,6 +151,7 @@ final class EntryStore: ObservableObject {
 
     func importEntries(_ newEntries: [Entry]) {
         for entry in newEntries {
+            deletedAt.removeValue(forKey: entry.id)
             if let index = allEntries.firstIndex(where: { $0.id == entry.id }) {
                 allEntries[index] = entry
             } else {
@@ -152,6 +163,10 @@ final class EntryStore: ObservableObject {
 
     func removeAllEntries() throws {
         guard !allEntries.isEmpty else { return }
+        let deletionDate = Date()
+        for entry in allEntries {
+            deletedAt[entry.id] = deletionDate
+        }
         allEntries.removeAll()
         try save()
         applyFilters()
@@ -162,13 +177,19 @@ final class EntryStore: ObservableObject {
     }
 
     func refresh() {
+        mergeFromICloud()
         applyFilters()
     }
 
     private func load() {
         do {
             let data = try Data(contentsOf: storageURL)
-            allEntries = try decoder.decode([Entry].self, from: data)
+            if let snapshot = try? decoder.decode(SyncSnapshot.self, from: data) {
+                allEntries = snapshot.entries
+                deletedAt = snapshot.deletedAt
+            } else {
+                allEntries = try decoder.decode([Entry].self, from: data)
+            }
         } catch {
             allEntries = []
         }
@@ -177,9 +198,11 @@ final class EntryStore: ObservableObject {
 
     private func save() throws {
         let sorted = allEntries.sorted(by: sortPredicate)
-        let data = try encoder.encode(sorted)
+        let snapshot = SyncSnapshot(entries: sorted, deletedAt: deletedAt)
+        let data = try encoder.encode(snapshot)
         try data.write(to: storageURL, options: [.atomic])
         allEntries = sorted
+        pushToICloud(snapshot)
     }
 
     private func persistSilently() {
@@ -189,6 +212,55 @@ final class EntryStore: ObservableObject {
         } catch {
             assertionFailure("Failed to persist entries: \(error)")
         }
+    }
+
+    private func startICloudSync() {
+        iCloudObserver = NotificationCenter.default.publisher(
+            for: NSUbiquitousKeyValueStore.didChangeExternallyNotification,
+            object: iCloudStore
+        )
+        .receive(on: DispatchQueue.main)
+        .sink { [weak self] _ in
+            self?.mergeFromICloud()
+        }
+
+        iCloudStore.synchronize()
+        if iCloudStore.data(forKey: Self.iCloudSnapshotKey) == nil {
+            pushToICloud(SyncSnapshot(entries: allEntries, deletedAt: deletedAt))
+        } else {
+            mergeFromICloud()
+        }
+    }
+
+    private func mergeFromICloud() {
+        guard let data = iCloudStore.data(forKey: Self.iCloudSnapshotKey),
+              let remote = try? decoder.decode(SyncSnapshot.self, from: data) else {
+            return
+        }
+
+        let local = SyncSnapshot(entries: allEntries, deletedAt: deletedAt)
+        let merged = SyncSnapshot.merging(local, remote)
+        guard merged != local else { return }
+
+        allEntries = merged.entries
+        deletedAt = merged.deletedAt
+        persistSilently()
+    }
+
+    private func pushToICloud(_ snapshot: SyncSnapshot) {
+        var snapshotToUpload = snapshot
+        if let remoteData = iCloudStore.data(forKey: Self.iCloudSnapshotKey),
+           let remote = try? decoder.decode(SyncSnapshot.self, from: remoteData) {
+            snapshotToUpload = SyncSnapshot.merging(snapshot, remote)
+        }
+        guard let data = try? encoder.encode(snapshotToUpload) else { return }
+        if snapshotToUpload != snapshot {
+            allEntries = snapshotToUpload.entries.sorted(by: sortPredicate)
+            deletedAt = snapshotToUpload.deletedAt
+            try? data.write(to: storageURL, options: [.atomic])
+        }
+        iCloudStore.set(data, forKey: Self.iCloudSnapshotKey)
+        iCloudStore.synchronize()
     }
 
     private func applyFilters() {

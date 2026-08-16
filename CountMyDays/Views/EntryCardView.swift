@@ -9,7 +9,9 @@ struct EntryCardView: View {
 
     private let timer = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
 
-    private var accent: Color { Color(hex: snapshot.colorHex) }
+    private var accent: Color {
+        Color(hex: TrendingCardPalettes.resolvedPrimaryHex(for: snapshot.colorHex))
+    }
 
     // Fixed professional colors - not affected by system color scheme
     private var titleColor: Color { palette.primaryTextColor }

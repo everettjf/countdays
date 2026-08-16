@@ -23,6 +23,13 @@ struct SettingsView: View {
         NavigationStack {
             List {
                 Section("Data") {
+                    HStack {
+                        Label("iCloud Sync", systemImage: "icloud")
+                        Spacer()
+                        Text("Automatic")
+                            .foregroundStyle(.secondary)
+                    }
+
                     NavigationLink {
                         ImportExportGuideView(onImport: { dismissAnd(onImport) },
                                                onExport: { dismissAnd(onExport) })

@@ -14,6 +14,7 @@ let package = Package(
             path: "CountMyDays",
             exclude: [
                 "Assets.xcassets",
+                "CountMyDays.entitlements",
                 "CountMyDaysApp.swift",
                 "Info.plist",
                 "Resources",
@@ -36,6 +37,7 @@ let package = Package(
                 "Models/EntryType.swift",
                 "Models/OutOfRangeBehavior.swift",
                 "Models/RepeatRule.swift",
+                "Models/SyncSnapshot.swift",
                 "Services/DayCounter.swift",
                 "Utilities/TrendingCardPalettes.swift",
             ]

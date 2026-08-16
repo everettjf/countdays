@@ -197,7 +197,7 @@ struct EntryEditView: View {
     }
 
     private func isSelected(_ palette: TrendingCardPalette) -> Bool {
-        TrendingCardPalettes.normalize(draft.colorHex) == TrendingCardPalettes.normalize(palette.primaryHex)
+        TrendingCardPalettes.resolvedPrimaryHex(for: draft.colorHex) == palette.primaryHex
     }
 
     private var isFormValid: Bool {

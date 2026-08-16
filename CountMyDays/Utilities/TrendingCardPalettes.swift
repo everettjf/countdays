@@ -18,20 +18,33 @@ struct TrendingCardPalette: Identifiable, Equatable {
 
 enum TrendingCardPalettes {
     static let all: [TrendingCardPalette] = [
-        TrendingCardPalette(name: "Olive Garden Feast", colors: ["#606C38", "#283618", "#FEFAE0", "#DDA15E", "#BC6C25"]),
-        TrendingCardPalette(name: "Pastel Dreamland Adventure", colors: ["#D9B8FF", "#B88CFF", "#9A6BFF", "#6D8DFF", "#3F6FFF"]),
-        TrendingCardPalette(name: "Fiery Ocean", colors: ["#780000", "#C1121F", "#FDF0D5", "#003049", "#669BBC"]),
-        TrendingCardPalette(name: "Golden Summer Fields", colors: ["#CCD5AE", "#E9EDC9", "#FEFAE0", "#FAEDCD", "#D4A373"]),
-        TrendingCardPalette(name: "Black & Gold Elegance", colors: ["#000000", "#14213D", "#FCA311", "#E5E5E5", "#FFFFFF"]),
-        TrendingCardPalette(name: "Refreshing Summer Fun", colors: ["#8ECAE6", "#219EBC", "#023047", "#FFB703", "#FB8500"]),
-        TrendingCardPalette(name: "Ocean Breeze", colors: ["#03045E", "#0077B6", "#00B4D8", "#90E0EF", "#CAF0F8"]),
-        TrendingCardPalette(name: "Fiery Palette", colors: ["#5F0F40", "#9A031E", "#FB8B24", "#E36414", "#0F4C5C"]),
-        TrendingCardPalette(name: "Soft Pastels", colors: ["#E9C1FF", "#CF96FF", "#A569FF", "#774BFF", "#4234C7"]),
-        TrendingCardPalette(name: "Soft Pink Delight", colors: ["#FFC3D8", "#FF93BA", "#FF659F", "#F13D7B", "#C2265C"])
+        TrendingCardPalette(name: "Sage Linen", colors: ["#789184", "#AABCB1", "#D8E0DA", "#F1F3EF"]),
+        TrendingCardPalette(name: "Lilac Haze", colors: ["#9B8FB5", "#BDB4CE", "#DDD7E6", "#F3F0F6"]),
+        TrendingCardPalette(name: "Rosewood Mist", colors: ["#B77C7A", "#CFA6A2", "#E8CDCA", "#F7EFEC"]),
+        TrendingCardPalette(name: "Meadow Cream", colors: ["#A5B08E", "#C3CAA9", "#E1E3C9", "#F5F2E7"]),
+        TrendingCardPalette(name: "Soft Graphite", colors: ["#737684", "#A4A6B0", "#D1D2D7", "#F0F0F2"]),
+        TrendingCardPalette(name: "Sea Glass", colors: ["#79A8B8", "#A5C4CB", "#D1E0E1", "#EFF5F3"]),
+        TrendingCardPalette(name: "Bluebell Air", colors: ["#7185A6", "#A0AEC5", "#CDD5E0", "#EEF1F5"]),
+        TrendingCardPalette(name: "Mauve Clay", colors: ["#A47B8D", "#C29EAB", "#DFC7CF", "#F5ECEF"]),
+        TrendingCardPalette(name: "Lavender Smoke", colors: ["#A895B8", "#C5B6D0", "#E1D9E7", "#F4F1F6"]),
+        TrendingCardPalette(name: "Petal Blush", colors: ["#C98FA3", "#DDB2BF", "#EED5DC", "#FAF1F3"])
+    ]
+
+    private static let legacyPrimaryMappings: [String: String] = [
+        "#606C38": "#789184",
+        "#D9B8FF": "#9B8FB5",
+        "#780000": "#B77C7A",
+        "#CCD5AE": "#A5B08E",
+        "#000000": "#737684",
+        "#8ECAE6": "#79A8B8",
+        "#03045E": "#7185A6",
+        "#5F0F40": "#A47B8D",
+        "#E9C1FF": "#A895B8",
+        "#FFC3D8": "#C98FA3"
     ]
 
     static func palette(for hex: String) -> TrendingCardPalette? {
-        let normalizedHex = normalize(hex)
+        let normalizedHex = resolvedPrimaryHex(for: hex)
         for palette in all {
             if normalize(palette.primaryHex) == normalizedHex {
                 return palette
@@ -40,8 +53,13 @@ enum TrendingCardPalettes {
         return nil
     }
 
+    static func resolvedPrimaryHex(for storedHex: String) -> String {
+        let normalizedHex = normalize(storedHex)
+        return legacyPrimaryMappings[normalizedHex] ?? normalizedHex
+    }
+
     static var defaultHex: String {
-        all.first?.primaryHex ?? "#606C38"
+        all.first?.primaryHex ?? "#789184"
     }
 
     static func randomPrimaryHex() -> String {

@@ -14,6 +14,7 @@
 		5A0DE4632E810DC500E2370A /* Exceptions for "CountMyDays" folder in "CountMyDays" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				CountMyDays.entitlements,
 				Info.plist,
 			);
 			target = 5A0DE4552E810DC400E2370A /* CountMyDays */;
@@ -145,6 +146,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_ENTITLEMENTS = CountMyDays/CountMyDays.entitlements;
 				CURRENT_PROJECT_VERSION = 115;
 				DEVELOPMENT_TEAM = YPV49M8592;
 				ENABLE_PREVIEWS = YES;
@@ -180,6 +182,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_ENTITLEMENTS = CountMyDays/CountMyDays.entitlements;
 				CURRENT_PROJECT_VERSION = 115;
 				DEVELOPMENT_TEAM = YPV49M8592;
 				ENABLE_PREVIEWS = YES;
