@@ -14,6 +14,8 @@ struct HomeView: View {
     @State private var errorMessage: String = ""
     @State private var showDeleteConfirm = false
     @State private var entryPendingDeletion: Entry?
+    @State private var sharePayload: CardShareService.Payload?
+    @Environment(\.colorScheme) private var colorScheme
 
     private let showsFilterPicker: Bool
     private let allowsSearch: Bool
@@ -59,6 +61,9 @@ struct HomeView: View {
             deleteDialogMessage(entry)
         })
         .sheet(item: $activeDraft, content: editorSheet(for:))
+        .sheet(item: $sharePayload) { payload in
+            ShareSheet(activityItems: [payload.image])
+        }
         .onAppear(perform: configureInitialFilter)
         .onChange(of: filter) { _, newFilter in
             updateFilter(newFilter)
@@ -191,8 +196,15 @@ struct HomeView: View {
             }
         }
         ToolbarItem(placement: .navigationBarTrailing) {
-            Button {
-                startNewEntry()
+            Menu {
+                Button("Blank Entry", systemImage: "plus") { startNewEntry() }
+                Section("Quick Start") {
+                    ForEach(EntryTemplate.allCases) { template in
+                        Button(template.title, systemImage: template.symbol) {
+                            startNewEntry(template: template)
+                        }
+                    }
+                }
             } label: {
                 Label("Add Entry", systemImage: "plus")
             }
@@ -215,6 +227,8 @@ struct HomeView: View {
             store.togglePin(entry)
         case .duplicate:
             store.duplicate(entry)
+        case .share:
+            sharePayload = CardShareService().render(entry: entry, colorScheme: colorScheme)
         case .toggleArchive:
             store.toggleArchive(entry)
         case .delete:
@@ -312,6 +326,11 @@ struct HomeView: View {
         activeDraft = EntryDraft(entryType: .countUp,
                                  startDate: defaultDate,
                                  timezone: timezone)
+    }
+
+    private func startNewEntry(template: EntryTemplate) {
+        editingEntry = nil
+        activeDraft = template.draft()
     }
 }
 

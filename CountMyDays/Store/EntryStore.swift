@@ -93,10 +93,12 @@ final class EntryStore: ObservableObject {
         }
         try save()
         applyFilters()
+        NotificationService.shared.scheduleReminders(for: entry)
         return entry
     }
 
     func delete(_ entry: Entry) throws {
+        NotificationService.shared.cancelReminders(for: entry)
         allEntries.removeAll { $0.id == entry.id }
         deletedAt[entry.id] = Date()
         try save()
@@ -111,6 +113,11 @@ final class EntryStore: ObservableObject {
         item.stampTimestamps(asNew: false)
         allEntries[index] = item
         persistSilently()
+        if item.isArchived {
+            NotificationService.shared.cancelReminders(for: item)
+        } else {
+            NotificationService.shared.scheduleReminders(for: item)
+        }
     }
 
     func toggleArchive(_ entry: Entry) {
@@ -147,6 +154,7 @@ final class EntryStore: ObservableObject {
         copy.stampTimestamps(asNew: true)
         allEntries.append(copy)
         persistSilently()
+        NotificationService.shared.scheduleReminders(for: copy)
     }
 
     func importEntries(_ newEntries: [Entry]) {
@@ -159,12 +167,20 @@ final class EntryStore: ObservableObject {
             }
         }
         persistSilently()
+        newEntries.forEach { entry in
+            if entry.isArchived {
+                NotificationService.shared.cancelReminders(for: entry)
+            } else {
+                NotificationService.shared.scheduleReminders(for: entry)
+            }
+        }
     }
 
     func removeAllEntries() throws {
         guard !allEntries.isEmpty else { return }
         let deletionDate = Date()
         for entry in allEntries {
+            NotificationService.shared.cancelReminders(for: entry)
             deletedAt[entry.id] = deletionDate
         }
         allEntries.removeAll()
@@ -202,6 +218,7 @@ final class EntryStore: ObservableObject {
         let data = try encoder.encode(snapshot)
         try data.write(to: storageURL, options: [.atomic])
         allEntries = sorted
+        WidgetSnapshotService().save(entries: sorted)
         pushToICloud(snapshot)
     }
 

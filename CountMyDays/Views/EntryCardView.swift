@@ -4,10 +4,16 @@ import UIKit
 
 struct EntryCardView: View {
     let snapshot: EntrySnapshot
+    let updatesLive: Bool
     @State private var now: Date = Date()
     @Environment(\.colorScheme) private var colorScheme
 
     private let timer = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
+
+    init(snapshot: EntrySnapshot, updatesLive: Bool = true) {
+        self.snapshot = snapshot
+        self.updatesLive = updatesLive
+    }
 
     private var accent: Color {
         Color(hex: TrendingCardPalettes.resolvedPrimaryHex(for: snapshot.colorHex))
@@ -96,7 +102,9 @@ struct EntryCardView: View {
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         .shadow(color: cardShadowColor, radius: 14, x: 0, y: 7)
         .contentShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-        .onReceive(timer) { now = $0 }
+        .onReceive(timer) { date in
+            if updatesLive { now = date }
+        }
     }
 
     private var cardBackground: some View {

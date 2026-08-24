@@ -13,6 +13,8 @@ struct SearchTabView: View {
     @State private var entryPendingDeletion: Entry?
     @State private var showErrorAlert = false
     @State private var errorMessage: String = ""
+    @State private var sharePayload: CardShareService.Payload?
+    @Environment(\.colorScheme) private var colorScheme
 
     private let onShowSettings: (() -> Void)?
 
@@ -51,6 +53,9 @@ struct SearchTabView: View {
         }
         .toolbar { toolbarContent() }
         .sheet(item: $activeDraft, content: editorSheet(for:))
+        .sheet(item: $sharePayload) { payload in
+            ShareSheet(activityItems: [payload.image])
+        }
         .confirmationDialog("Delete Entry?", isPresented: $showDeleteConfirm, presenting: entryPendingDeletion, actions: { entry in
             deleteDialogActions(for: entry)
         }, message: { _ in
@@ -152,6 +157,8 @@ struct SearchTabView: View {
             store.togglePin(entry)
         case .duplicate:
             store.duplicate(entry)
+        case .share:
+            sharePayload = CardShareService().render(entry: entry, colorScheme: colorScheme)
         case .toggleArchive:
             store.toggleArchive(entry)
         case .delete:

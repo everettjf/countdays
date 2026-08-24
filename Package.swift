@@ -21,6 +21,8 @@ let package = Package(
                 "Services/ExportService.swift",
                 "Services/ImportService.swift",
                 "Services/NotificationService.swift",
+                "Services/CardShareService.swift",
+                "Services/WidgetSnapshotService.swift",
                 "Store",
                 "Utilities/AppReviewManager.swift",
                 "Utilities/Bundle+AppInfo.swift",
@@ -29,6 +31,7 @@ let package = Package(
                 "Utilities/DynamicTypeSize+Helpers.swift",
                 "Utilities/TimeZone+List.swift",
                 "Views",
+                "Models/EntryTemplate.swift",
             ],
             sources: [
                 "Models/Entry.swift",

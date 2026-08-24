@@ -12,6 +12,9 @@ struct EntryEditView: View {
     @State private var showingTimeZonePicker = false
     @FocusState private var focusedField: FocusedField?
     @State private var showDeleteConfirmation = false
+    @State private var customReminderDays = 14
+
+    private let presetReminderDays = [0, 1, 3, 7, 30]
 
     private let colorPalette: [TrendingCardPalette] = TrendingCardPalettes.all
     private var layout: EditLayout {
@@ -131,6 +134,36 @@ struct EntryEditView: View {
                     .padding(.vertical, 4)
                 }
 
+                if draft.entryType == .countDown {
+                    Section {
+                        ForEach(presetReminderDays, id: \.self) { days in
+                            Toggle(reminderLabel(for: days), isOn: reminderBinding(days: days))
+                        }
+                        HStack {
+                            Stepper("Custom: \(customReminderDays) days before",
+                                    value: $customReminderDays, in: 1...3650)
+                            Button("Add") {
+                                draft.reminderOffsetsDays = Array(Set(draft.reminderOffsetsDays + [customReminderDays])).sorted()
+                            }
+                            .buttonStyle(.bordered)
+                        }
+                        ForEach(customReminderOffsets, id: \.self) { days in
+                            HStack {
+                                Text("\(days) days before")
+                                Spacer()
+                                Button("Remove", systemImage: "minus.circle", role: .destructive) {
+                                    draft.reminderOffsetsDays.removeAll { $0 == days }
+                                }
+                                .labelStyle(.iconOnly)
+                            }
+                        }
+                    } header: {
+                        Text("Reminders")
+                    } footer: {
+                        Text("Notifications are delivered at 8:00 AM in the entry's time zone.")
+                    }
+                }
+
                 Section("Preview") {
                     EntryCardView(snapshot: EntrySnapshot(draft: draft))
                         .padding(.vertical, 8)
@@ -233,6 +266,26 @@ struct EntryEditView: View {
                 draft.rangeEnd = nil
             }
         })
+    }
+
+    private var customReminderOffsets: [Int] {
+        draft.reminderOffsetsDays.filter { !presetReminderDays.contains($0) }.sorted()
+    }
+
+    private func reminderBinding(days: Int) -> Binding<Bool> {
+        Binding {
+            draft.reminderOffsetsDays.contains(days)
+        } set: { isEnabled in
+            if isEnabled {
+                draft.reminderOffsetsDays = Array(Set(draft.reminderOffsetsDays + [days])).sorted()
+            } else {
+                draft.reminderOffsetsDays.removeAll { $0 == days }
+            }
+        }
+    }
+
+    private func reminderLabel(for days: Int) -> String {
+        days == 0 ? "On the day" : "\(days) days before"
     }
 
     private var rangeStartBinding: Binding<Date> {

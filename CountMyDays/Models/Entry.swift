@@ -14,6 +14,7 @@ struct Entry: Identifiable, Codable, Equatable {
     var colorHex: String
     var iconEmoji: String?
     var notes: String?
+    var reminderOffsetsDays: [Int]
     var isPinned: Bool
     var isArchived: Bool
     var createdAt: Date
@@ -32,6 +33,7 @@ struct Entry: Identifiable, Codable, Equatable {
          colorHex: String = TrendingCardPalettes.defaultHex,
          iconEmoji: String? = nil,
          notes: String? = nil,
+         reminderOffsetsDays: [Int] = [0],
          isPinned: Bool = false,
          isArchived: Bool = false,
          createdAt: Date = Date(),
@@ -49,6 +51,7 @@ struct Entry: Identifiable, Codable, Equatable {
         self.colorHex = colorHex
         self.iconEmoji = iconEmoji
         self.notes = notes
+        self.reminderOffsetsDays = reminderOffsetsDays
         self.isPinned = isPinned
         self.isArchived = isArchived
         self.createdAt = createdAt
@@ -91,6 +94,7 @@ extension Entry {
         case colorHex
         case iconEmoji
         case notes
+        case reminderOffsetsDays
         case isPinned
         case isArchived
         case createdAt
@@ -112,6 +116,7 @@ extension Entry {
         colorHex = try container.decodeIfPresent(String.self, forKey: .colorHex) ?? TrendingCardPalettes.defaultHex
         iconEmoji = try container.decodeIfPresent(String.self, forKey: .iconEmoji)
         notes = try container.decodeIfPresent(String.self, forKey: .notes)
+        reminderOffsetsDays = try container.decodeIfPresent([Int].self, forKey: .reminderOffsetsDays) ?? [0]
         isPinned = try container.decodeIfPresent(Bool.self, forKey: .isPinned) ?? false
         isArchived = try container.decodeIfPresent(Bool.self, forKey: .isArchived) ?? false
         createdAt = try container.decodeIfPresent(Date.self, forKey: .createdAt) ?? Date()
@@ -133,6 +138,7 @@ extension Entry {
         try container.encode(colorHex, forKey: .colorHex)
         try container.encodeIfPresent(iconEmoji, forKey: .iconEmoji)
         try container.encodeIfPresent(notes, forKey: .notes)
+        try container.encode(reminderOffsetsDays, forKey: .reminderOffsetsDays)
         try container.encode(isPinned, forKey: .isPinned)
         try container.encode(isArchived, forKey: .isArchived)
         try container.encode(createdAt, forKey: .createdAt)

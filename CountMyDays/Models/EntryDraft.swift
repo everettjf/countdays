@@ -14,6 +14,7 @@ struct EntryDraft: Identifiable, Equatable {
     var colorHex: String
     var iconEmoji: String?
     var notes: String?
+    var reminderOffsetsDays: [Int]
     var isPinned: Bool
     var isArchived: Bool
 
@@ -30,6 +31,7 @@ struct EntryDraft: Identifiable, Equatable {
          colorHex: String = TrendingCardPalettes.defaultHex,
          iconEmoji: String? = nil,
          notes: String? = nil,
+         reminderOffsetsDays: [Int] = [0],
          isPinned: Bool = false,
          isArchived: Bool = false) {
         self.id = id
@@ -45,6 +47,7 @@ struct EntryDraft: Identifiable, Equatable {
         self.colorHex = colorHex
         self.iconEmoji = iconEmoji
         self.notes = notes
+        self.reminderOffsetsDays = reminderOffsetsDays
         self.isPinned = isPinned
         self.isArchived = isArchived
     }
@@ -63,6 +66,7 @@ struct EntryDraft: Identifiable, Equatable {
         colorHex = entry.colorHex
         iconEmoji = entry.iconEmoji
         notes = entry.notes
+        reminderOffsetsDays = entry.reminderOffsetsDays
         isPinned = entry.isPinned
         isArchived = entry.isArchived
     }
@@ -94,6 +98,9 @@ extension EntryDraft {
         entry.colorHex = colorHex.isEmpty ? TrendingCardPalettes.defaultHex : colorHex
         entry.iconEmoji = iconEmoji?.isEmpty == true ? nil : iconEmoji
         entry.notes = notes?.isEmpty == true ? nil : notes
+        entry.reminderOffsetsDays = entryType == .countDown
+            ? Array(Set(reminderOffsetsDays.filter { $0 >= 0 && $0 <= 3650 })).sorted()
+            : []
         entry.isPinned = isPinned && !isArchived
         entry.isArchived = isArchived
         entry.timezoneID = timezone.identifier

@@ -39,6 +39,7 @@ private struct ExportEntry: Codable {
     let color: String
     let icon: String?
     let notes: String?
+    let reminderOffsetsDays: [Int]
     let pinned: Bool
     let archived: Bool
 
@@ -56,6 +57,7 @@ private struct ExportEntry: Codable {
         color = entry.colorHex
         icon = entry.iconEmoji
         notes = entry.notes
+        reminderOffsetsDays = entry.reminderOffsetsDays
         pinned = entry.isPinned
         archived = entry.isArchived
     }
@@ -76,6 +78,7 @@ private extension ExportEntry {
         case color
         case icon
         case notes
+        case reminderOffsetsDays
         case pinned
         case archived
     }

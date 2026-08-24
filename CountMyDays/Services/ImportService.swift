@@ -118,6 +118,7 @@ private extension ImportService {
         }
         entry.iconEmoji = dto.iconEmoji?.isEmpty == true ? nil : dto.iconEmoji
         entry.notes = dto.notes
+        entry.reminderOffsetsDays = Array(Set((dto.reminderOffsetsDays ?? [0]).filter { $0 >= 0 && $0 <= 3650 })).sorted()
         entry.isArchived = dto.isArchived ?? false
         entry.isPinned = (dto.isPinned ?? false) && !entry.isArchived
 
@@ -196,6 +197,7 @@ private struct ImportEntryDTO: Decodable {
     let color: String?
     let iconEmoji: String?
     let notes: String?
+    let reminderOffsetsDays: [Int]?
     let isPinned: Bool?
     let isArchived: Bool?
 
@@ -219,6 +221,7 @@ private struct ImportEntryDTO: Decodable {
         case iconEmoji
         case icon
         case notes
+        case reminderOffsetsDays
         case isPinned
         case isArchived
         case pinned
@@ -240,6 +243,7 @@ private struct ImportEntryDTO: Decodable {
         color = try container.decodeIfPresent(String.self, forKey: .color) ?? container.decodeIfPresent(String.self, forKey: .colorHex)
         iconEmoji = try container.decodeIfPresent(String.self, forKey: .iconEmoji) ?? container.decodeIfPresent(String.self, forKey: .icon)
         notes = try container.decodeIfPresent(String.self, forKey: .notes)
+        reminderOffsetsDays = try container.decodeIfPresent([Int].self, forKey: .reminderOffsetsDays)
         isPinned = try container.decodeIfPresent(Bool.self, forKey: .pinned) ?? container.decodeIfPresent(Bool.self, forKey: .isPinned)
         isArchived = try container.decodeIfPresent(Bool.self, forKey: .archived) ?? container.decodeIfPresent(Bool.self, forKey: .isArchived)
     }

@@ -16,6 +16,10 @@ CountMyDays is a SwiftUI iOS app for tracking countdowns and cumulative day coun
 - Automatic iCloud sync with local offline storage.
 - JSON import/export for backups or migration.
 - Local notifications for countdown target days.
+- Home Screen and Lock Screen widgets for pinned and upcoming entries.
+- Flexible reminders on the day, 1/3/7/30 days before, or a custom number of days.
+- Quick-start templates for birthdays, anniversaries, trips, exams, and habit tracking.
+- High-resolution card image sharing through the system share sheet.
 
 ## Requirements
 - Xcode with iOS Simulator support.

@@ -299,6 +299,21 @@ struct SyncSnapshotMergeTests {
         #expect(!entry.timezoneID.isEmpty)
         #expect(entry.notes == nil)
         #expect(entry.iconEmoji == nil)
+        #expect(entry.reminderOffsetsDays == [0])
+    }
+
+    @Test("Reminder offsets survive an entry JSON round trip")
+    func reminderOffsetsRoundTrip() throws {
+        var entry = fullEntry(id: UUID(), title: "Launch", updatedAt: .now)
+        entry.reminderOffsetsDays = [30, 7, 1, 0]
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+
+        let decoded = try decoder.decode(Entry.self, from: encoder.encode(entry))
+
+        #expect(decoded.reminderOffsetsDays == [30, 7, 1, 0])
     }
 
     @Test("Entry decoding fails when a required field is missing")

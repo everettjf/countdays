@@ -7,35 +7,49 @@ final class NotificationService {
 
     private init() {}
 
-    func requestAuthorization() {
-        center.requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
-            if let error = error {
-                print("Notification permission error: \(error)")
-            } else {
-                print("Notifications granted: \(granted)")
+    func scheduleReminders(for entry: Entry, now: Date = .now) {
+        #if DEBUG
+        guard !ProcessInfo.processInfo.arguments.contains("-SeedStoreScreenshots") else { return }
+        #endif
+        cancelReminders(for: entry)
+        guard entry.entryType == .countDown,
+              !entry.isArchived,
+              !entry.reminderOffsetsDays.isEmpty,
+              let target = DayCounter.effectiveTargetDate(for: EntrySnapshot(entry: entry), now: now) else { return }
+
+        center.requestAuthorization(options: [.alert, .sound, .badge]) { [weak self] granted, error in
+            guard granted, error == nil, let self else { return }
+            var calendar = Calendar(identifier: .gregorian)
+            calendar.timeZone = entry.timezone
+            for offset in entry.reminderOffsetsDays {
+                guard let day = calendar.date(byAdding: .day, value: -offset, to: target) else { continue }
+                var components = calendar.dateComponents([.year, .month, .day], from: day)
+                components.hour = 8
+                guard let fireDate = calendar.date(from: components), fireDate > now else { continue }
+                let content = UNMutableNotificationContent()
+                content.title = entry.title
+                content.body = offset == 0 ? String(localized: "Today is the day!") : String(localized: "\(offset) days to go")
+                content.sound = .default
+                let request = UNNotificationRequest(
+                    identifier: self.identifier(for: entry.id, offset: offset),
+                    content: content,
+                    trigger: UNCalendarNotificationTrigger(dateMatching: components, repeats: false)
+                )
+                self.center.add(request)
             }
         }
     }
 
-    func scheduleCountdownReminder(for entry: Entry) {
-        guard entry.entryType == .countDown, let targetDate = entry.targetDate else { return }
-        let content = UNMutableNotificationContent()
-        content.title = entry.title
-        content.body = "Today is the day!"
-        content.sound = .default
-
-        var triggerDate = Calendar.current.dateComponents([.year, .month, .day], from: targetDate)
-        triggerDate.hour = 8
-        let trigger = UNCalendarNotificationTrigger(dateMatching: triggerDate, repeats: false)
-        let request = UNNotificationRequest(identifier: entry.id.uuidString, content: content, trigger: trigger)
-        center.add(request) { error in
-            if let error = error {
-                print("Notification scheduling failed: \(error)")
-            }
-        }
+    func cancelReminders(for entry: Entry) {
+        let offsets = Set(entry.reminderOffsetsDays).union([0, 1, 3, 7, 30])
+        center.removePendingNotificationRequests(withIdentifiers: offsets.map { identifier(for: entry.id, offset: $0) })
     }
 
-    func cancelReminder(for entry: Entry) {
-        center.removePendingNotificationRequests(withIdentifiers: [entry.id.uuidString])
+    func rescheduleAll(_ entries: [Entry]) {
+        entries.forEach { scheduleReminders(for: $0) }
+    }
+
+    private func identifier(for id: UUID, offset: Int) -> String {
+        "\(id.uuidString).reminder.\(offset)"
     }
 }

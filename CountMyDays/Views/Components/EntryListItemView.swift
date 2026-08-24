@@ -4,6 +4,7 @@ enum EntryAction {
     case edit
     case togglePin
     case duplicate
+    case share
     case toggleArchive
     case delete
 }
@@ -28,6 +29,9 @@ struct EntryListItemView: View {
             }
             Button("Duplicate") {
                 onAction(entry, .duplicate)
+            }
+            Button("Share Card", systemImage: "square.and.arrow.up") {
+                onAction(entry, .share)
             }
             Divider()
             Button("Edit") {

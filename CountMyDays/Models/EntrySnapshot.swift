@@ -14,6 +14,7 @@ struct EntrySnapshot: Identifiable {
     let colorHex: String
     let iconEmoji: String?
     let notes: String?
+    let reminderOffsetsDays: [Int]
     let isPinned: Bool
     let isArchived: Bool
 
@@ -30,6 +31,7 @@ struct EntrySnapshot: Identifiable {
          colorHex: String,
          iconEmoji: String?,
          notes: String?,
+         reminderOffsetsDays: [Int] = [0],
          isPinned: Bool,
          isArchived: Bool) {
         self.id = id
@@ -45,6 +47,7 @@ struct EntrySnapshot: Identifiable {
         self.colorHex = colorHex
         self.iconEmoji = iconEmoji
         self.notes = notes
+        self.reminderOffsetsDays = reminderOffsetsDays
         self.isPinned = isPinned
         self.isArchived = isArchived
     }
@@ -63,6 +66,7 @@ struct EntrySnapshot: Identifiable {
         colorHex = entry.colorHex
         iconEmoji = entry.iconEmoji
         notes = entry.notes
+        reminderOffsetsDays = entry.reminderOffsetsDays
         isPinned = entry.isPinned
         isArchived = entry.isArchived
     }
@@ -81,6 +85,7 @@ struct EntrySnapshot: Identifiable {
         colorHex = draft.colorHex
         iconEmoji = draft.iconEmoji
         notes = draft.notes
+        reminderOffsetsDays = draft.reminderOffsetsDays
         isPinned = draft.isPinned
         isArchived = draft.isArchived
     }

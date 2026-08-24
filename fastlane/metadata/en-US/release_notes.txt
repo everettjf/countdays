@@ -1,0 +1,7 @@
+CountMyDays 1.2 makes every important date easier to see and remember.
+
+• Home Screen and Lock Screen widgets
+• Reminders on the day, 1, 3, 7, or 30 days before, plus custom timing
+• Quick templates for birthdays, anniversaries, trips, exams, and habits
+• Share any card as a beautiful image
+• Reliability improvements for synced entries and recurring dates
